@@ -1155,13 +1155,13 @@ function vMoves(){
 function vRebut(){
   const BAL=moveBalances();
   const list=S.moves.filter(m=>m.type==='Rebut').sort((a,b)=>(b.at||b.date).localeCompare(a.at||a.date)||b.seq-a.seq);
-  const tot=list.reduce((a,m)=>a-m.qty,0);
+  const isT=m=>/→ Transformé en/.test(m.note||'');const tot=list.filter(m=>!isT(m)).reduce((a,m)=>a-m.qty,0),totT=list.filter(isT).reduce((a,m)=>a-m.qty,0);
   const arts={};list.forEach(m=>{arts[m.pid]=(arts[m.pid]||0)-m.qty});
   const top=Object.entries(arts).sort((a,b)=>b[1]-a[1]).slice(0,6);
   return `<div class="bar-row"><span class="grow"></span>${can('stock')?`<button class="btn primary" data-act="newRebut">${ic('plus',16)} Mettre un article au rebut</button>`:''}</div>
-  <div class="kpis"><div class="kpi"><span>Pièces au rebut</span><b>${tot}</b><small>${list.length} opération(s)</small></div><div class="kpi"><span>Articles concernés</span><b>${top.length?Object.keys(arts).length:0}</b><small>références différentes</small></div></div>
-  <section class="panel" style="padding:6px 8px"><div class="scroll">${list.length?`<table><thead><tr><th>Date et heure</th><th>Article</th><th class="num">Quantité</th><th>Provenance et motif</th><th>Par</th></tr></thead><tbody>${list.map(m=>{const p=prod(m.pid)||{name:'?',ref:''};return `<tr><td>${fdt(m.at||m.date)}</td><td><b>${esc(p.name)}</b><span class="sub">${esc(p.ref)}</span></td><td class="num neg"><b>${m.qty}</b></td><td>${esc(m.note||'—')}</td><td>${esc(staffName(m.by))}</td></tr>`}).join('')}</tbody></table>`:empty('Aucun article au rebut','Les articles inutilisables, mis hors service définitivement, apparaîtront ici et sortiront du stock.')}</div></section>
-  <p class="hint">Un article mis au rebut est retiré définitivement du stock : il n’est plus compté dans le total ni dans les disponibilités. L’opération est enregistrée dans les mouvements de stock.</p>`;
+  <div class="kpis"><div class="kpi"><span>Rebut définitif</span><b>${tot}</b><small>pièces jetées</small></div><div class="kpi"><span>Transformées</span><b>${totT}</b><small>pièces recyclées en autre article</small></div><div class="kpi"><span>Articles concernés</span><b>${Object.keys(arts).length}</b><small>références différentes</small></div></div>
+  <section class="panel" style="padding:6px 8px"><div class="scroll">${list.length?`<table><thead><tr><th>Date et heure</th><th>Article</th><th class="num">Quantité</th><th>Devenir</th><th>Provenance et motif</th><th>Par</th></tr></thead><tbody>${list.map(m=>{const p=prod(m.pid)||{name:'?',ref:''};return `<tr><td>${fdt(m.at||m.date)}</td><td><b>${esc(p.name)}</b><span class="sub">${esc(p.ref)}</span></td><td class="num neg"><b>${m.qty}</b></td><td><span class="badge ${isT(m)?'b-info':'b-bad'}">${isT(m)?'Transformé':'Rebut définitif'}</span></td><td>${esc(m.note||'—')}</td><td>${esc(staffName(m.by))}</td></tr>`}).join('')}</tbody></table>`:empty('Aucun article au rebut','Les articles inutilisables, mis hors service définitivement, apparaîtront ici et sortiront du stock.')}</div></section>
+  <p class="hint">Un article mis au rebut est retiré du stock : il n’est plus compté dans le total ni dans les disponibilités. Une pièce transformée (par exemple une nappe abîmée en serviettes) sort aussi du stock d’origine, et le nouvel article y est ajouté. Les pièces encore réparables restent « Endommagé » ou « En entretien », et peuvent être remises en service. L’opération est enregistrée dans les mouvements de stock.</p>`;
 }
 function rebutForm(){
   if(!can('stock')){toast('Droit insuffisant.',1);return}
@@ -1169,18 +1169,36 @@ function rebutForm(){
     {k:'art',label:'Article',required:true,full:true,list:'plist',hint:'Commencez à saisir le nom.'},
     {k:'from',label:'Provenance',type:'select',full:true,options:[['dmg','Endommagé'],['maint','En entretien'],['dispo','Disponible en magasin']]},
     {k:'qty',label:'Quantité',type:'number',min:1,step:1,required:true,full:true,value:1},
+    {k:'dest',label:'Devenir de la pièce',type:'select',full:true,options:[['def','Rebut définitif (inutilisable, jetée)'],['transf','Transformée en un autre article (ex. nappe abîmée → serviettes)']]},
+    {k:'art2',label:'Si transformée : nouvel article obtenu',full:true,list:'plist',hint:'Laissez vide pour un rebut définitif.'},
+    {k:'qty2',label:'Si transformée : quantité obtenue',type:'number',min:1,step:1,full:true},
     {k:'note',label:'Motif (obligatoire)',required:true,full:true}],
-   submit:'Mettre au rebut',onSubmit:v=>{
+   submit:'Enregistrer',onSubmit:v=>{
     const p=S.products.find(x=>x.name.toLowerCase()===String(v.art).trim().toLowerCase());
     if(!p){toast('Article introuvable : choisissez un nom du catalogue.',1);return false}
     const q=Math.round(v.qty);if(!(q>0)){toast('Quantité invalide.',1);return false}
     const phys=Math.max(0,usable(p)-outNow(p.id));
     const have=v.from==='dispo'?phys:v.from==='maint'?(p.maint||0):(p.dmg||0);
     if(q>have){toast('Seulement '+have+' pièce(s) dans cet état.',1);return false}
+    let p2=null,q2=0;
+    if(v.dest==='transf'){
+      p2=S.products.find(x=>x.name.toLowerCase()===String(v.art2||'').trim().toLowerCase());
+      q2=Math.round(v.qty2||0);
+      if(!p2){toast('Choisissez le nouvel article obtenu (nom du catalogue).',1);return false}
+      if(p2.id===p.id){toast('Le nouvel article doit être différent.',1);return false}
+      if(!(q2>0)){toast('Indiquez la quantité obtenue.',1);return false}
+    }
     if(v.from==='maint')p.maint-=q;if(v.from==='dmg')p.dmg-=q;
     p.stock=Math.max(0,p.stock-q);
-    addMove(p.id,'Rebut',-q,'',(TRANS.find(t=>t[0]===v.from+'>rebut')[1])+' — '+v.note);
-    save();render();toast('Article mis au rebut et retiré du stock.');
+    const lab={dmg:'Endommagé',maint:'En entretien',dispo:'Disponible'}[v.from];
+    if(p2){
+      addMove(p.id,'Rebut',-q,'',lab+' → Transformé en '+p2.name+' (×'+q2+') — '+v.note);
+      p2.stock+=q2;addMove(p2.id,'Entrée',q2,'','Transformation : issu de '+p.name+' (×'+q+')');
+      save();render();toast('Transformation enregistrée : '+q2+' × '+p2.name+' ajouté(s) au stock.');
+    }else{
+      addMove(p.id,'Rebut',-q,'',(TRANS.find(t=>t[0]===v.from+'>rebut')[1])+' — '+v.note);
+      save();render();toast('Article mis au rebut et retiré du stock.');
+    }
    }});
 }
 
