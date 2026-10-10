@@ -1408,7 +1408,9 @@ const ACT={
   receivePO:el=>receivePO(el.dataset.id),
   period:el=>{ui.period=el.dataset.v;render()},
   newStaff:()=>openModal('Ajouter un collaborateur',`<p>Les comptes sont créés dans Supabase pour des raisons de sécurité :</p><ol><li>Ouvrez <b>Supabase → Authentication → Users → Add user</b> et saisissez l’e-mail et un mot de passe.</li><li>Le collaborateur apparaît ici avec le rôle <b>Livreur</b> (aucun accès aux montants).</li><li>Cliquez sur <b>Actualiser les données</b>, puis <b>Modifier</b> pour lui donner le bon rôle.</li></ol><div class="modal-foot" style="display:flex;justify-content:flex-end"><button class="btn primary" data-act="closeModal">Compris</button></div>`,{narrow:true,focus:false}),editStaff:el=>staffForm(el.dataset.id),
-  newRebut:()=>rebutForm(),theme:()=>toggleTheme(),resetDemo:()=>confirmDialog('Réinitialiser la démonstration ?','Toutes vos modifications seront remplacées par les données d’exemple.','Réinitialiser',()=>{S=seed();ui.draft=null;ui.view='dash';save();render();toast('Données de démonstration rechargées.')})
+  newRebut:()=>rebutForm(),theme:()=>toggleTheme(),
+  logout:()=>signOutUI(''),
+  refresh:()=>{if(syncing||dirty){toast('Enregistrement en cours, réessayez dans un instant.',1);return}reloadAll().then(()=>toast('Données actualisées.'))},
 };
 const INP={
   rq:el=>{ui.rq=el.value;const q=ui.rq.toLowerCase();const rows=S.rentals.filter(r=>(ui.rstat==='all'||r.status===ui.rstat)&&(!q||(r.eventName+' '+r.no+' '+((client(r.clientId)||{}).name||'')).toLowerCase().includes(q))).sort((a,b)=>b.start.localeCompare(a.start));$('#rtable').innerHTML=rentalsTable(rows)},
