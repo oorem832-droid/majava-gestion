@@ -358,7 +358,7 @@ const ICONS={
  wallet:'<path d="M3 7h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 7l12-3v3"/><path d="M16 14h2"/>',
  lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
  gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',
- copy:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V6a2 2 0 0 1 2-2h10"/>'
+ copy:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V6a2 2 0 0 1 2-2h10"/>',send:'<path d="M21 3L3 11l7 3 3 7z"/><path d="M10 14l11-11"/>',mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>'
 };
 const ic=(n,s=18)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]||''}</svg>`;
 
@@ -424,12 +424,12 @@ const NAV=[
  {id:'settings',label:'Règles & paramètres',ic:'gear',roles:['admin']}
 ];
 const ACT_ROLES={rent:['admin','commercial'],pay:['admin','commercial'],prepare:['admin','stock'],deliver:['admin','driver'],
- ret:['admin','stock','maint'],settle:['admin','commercial'],retDate:['admin','commercial','stock'],waive:['admin','commercial'],
+ ret:['admin','stock','maint'],settle:['admin','commercial'],retDate:['admin','commercial','stock'],
  stock:['admin','stock'],create:['admin','stock','commercial'],transform:['admin','maint'],qty:['admin','stock','commercial'],advise:['admin','commercial','stock','maint'],restock:['admin','stock'],stateEdit:['admin','stock','maint'],signal:['admin','commercial','maint'],
  deposit:['admin','commercial'],regul:['admin','commercial','stock'],money:['admin','commercial','accountant'],purchase:['admin','stock'],clients:['admin','commercial'],team:['admin']};
 const STATUSES=['Devis','Pré-réservation','Confirmée','Sortie','Retournée','Expirée','Annulée'];
-const SLOTS=['08h – 10h','10h – 12h','12h – 14h','14h – 16h','16h – 18h','18h – 20h'];
-const DEFAULT_CONDITIONS=['Réservation et paiement : la commande est confirmée, et le matériel ainsi que les créneaux de livraison et de récupération sont réservés, uniquement après paiement intégral de la location (articles et transport) et de la caution. MAJAVA ne prend pas d’avance.','Caution : 30 % du prix de location du matériel (transport non inclus). Elle est restituée à la récupération, après contrôle du matériel, déduction faite de la casse, des pertes et des jours de retard.','Livraison et récupération : aux créneaux horaires convenus. Le client, ou son représentant, est présent pour la réception et la remise du matériel.','Retard : chaque jour supplémentaire de conservation du matériel est facturé au tarif journalier de la commande.','Casse et perte : le matériel manquant ou détérioré est facturé au prix de remplacement.','Responsabilité : le matériel est sous la responsabilité du client de la livraison jusqu’à la récupération.'];
+const SLOTS=['7h – 9h','9h – 11h','11h – 13h','13h – 15h','15h – 17h','17h – 19h'];
+const DEFAULT_CONDITIONS=["Article 1. La société MAJAVA s'engage à mettre à la disposition du Client du matériel à louer en bon état d'utilisation après une vérification préalable par le Client lors de la livraison et une fois le Bon de livraison signé. Toute malfaçon ou détérioration constatée par le Client devra être notifiée sur le bon de livraison. Par ailleurs, les remarques après validation de la réception ne seront pas prises en compte.", "Article 2. Le Client s’engage à prendre soin du matériel mis à sa disposition et à le restituer après utilisation. Il est responsable de tous les dommages causés à tout matériel loué pendant la durée de la location, jusqu’à restitution effective de celui-ci à la société MAJAVA.", "Article 3. La présence du Client est nécessaire lors de la livraison et de la récupération du matériel loué. En cas d’absence ou empêchement, le Client assigne un Représentant, qui l’engage. Celui-ci devra procéder à un contrôle minutieux du matériel à l’occasion de la livraison du matériel. Il veillera également à regrouper le matériel en vue de le rendre accessible pour la récupération par la société MAJAVA.", "Article 4. Le client doit s’acquitter de la totalité de sa facture (commande, transport et caution) avant toute livraison. Seul le paiement total vaut réservation des articles. Tout paiement par chèque doit se faire au maximum quatre (04) jours ouvrables avant la date de livraison du matériel. Dans le cas contraire, le client devra procéder au paiement en espèces ou via paiement mobile(Orange Money, Wave, etc….). La caution versée est disponible 48h jours ouvrables après la récupération du matériel et reste disponible sur rdv après un délai de 10 jours en showroom. Passé ce délai, la restitution de la caution devra se faire sur rdv.", "Article 5. En cas de dégradation, détérioration, perte, vol et/ou disparition du matériel loué, le Client devra payer à la société MAJAVA, le coût du dommage du matériel. Ce coût sera déduit de la caution du client si toutefois celle-ci est suffisante, dans le cas contraire le client devra s’acquitter du surplus et soldé dans les 72 heures.", "Article 6. Le matériel non restitué à la date prévue sera facturé en jours supplémentaires de location à partir du lendemain de la date de récupération prévue dans le contrat.", "Article 7. La société MAJAVA procédera à l’installation de tout matériel dit technique. Par conséquent, il est formellement interdit de faire intervenir un technicien externe sur le matériel de la société MAJAVA.", "Article 8. Le matériel pris en location est livré par la société MAJAVA sur le lieu de livraison correspondant au lieu d’utilisation du matériel comme indiqué sur la facture. Il est donc interdit de déplacer le matériel sur un autre lieu que celui indiqué sur la facture du client sauf autorisation exceptionnelle de la société MAJAVA.", "Article 9. Il est interdit de poser des agrafes, perforer, pointer, percer etc… le matériel loué, notamment les nappes, tables, abris mis à disposition. Le matériel sera jugé endommagé le cas échéant et les couts dommages s’y appliqueront.", "Article 10. Les annulations ou reports sont admis dans un délai supérieur à 72 heures avant le début de la livraison dans le cas contraire, seulement 50% du montant de la commande sera restituée au client.", "Article 11. Le présent contrat prend effet à compter de la date de sa signature et/ou approbation électronique par le Client. En cas de différends résultant de l'application et/ou de l'interprétation du présent contrat, les parties conviennent de recourir à un règlement amiable dans un délai maximum de 30 jours. A défaut, le Tribunal de Commerce d'Abidjan sera compétent."];
 const SOURCES=['Plateforme (demande en ligne)','Téléphone','WhatsApp','E-mail','Showroom'];
 const MOVE_TYPES=['Entrée','Sortie','Retour','Perte','Ajustement','État','Rebut'];
 
@@ -448,8 +448,8 @@ const TBL={
   from:r=>({id:r.id,name:r.name,type:r.client_type,phone:nz(r.phone),email:nz(r.email),address:nz(r.address),notes:nz(r.notes)})},
  suppliers:{to:s=>({id:s.id,name:s.name,contact:s.contact,phone:s.phone,email:s.email,category:s.category,city:s.city,notes:s.notes}),
   from:r=>({id:r.id,name:r.name,contact:nz(r.contact),phone:nz(r.phone),email:nz(r.email),category:nz(r.category),city:nz(r.city),notes:nz(r.notes)})},
- rentals:{to:r=>({id:r.id,rental_no:r.no,client_id:r.clientId,event_name:r.eventName,event_type:r.eventType,source:r.source||null,start_date:r.start,end_date:r.end,status:r.status,lines:r.lines,delivery:r.delivery,discount:r.discount,fees:r.fees||0,payments:r.payments,lost:r.lost||{},incidents:r.incidents||[],notes:r.notes||'',created:r.created||null,created_by:nn(r.by),hold_until:nn(r.holdUntil),hold_by:nn(r.holdBy),expired_at:nn(r.expiredAt),prepared:!!r.prepared,prepared_at:nn(r.preparedAt),prepared_by:nn(r.preparedBy),out_at:nn(r.outAt),out_by:nn(r.outBy),returned_at:nn(r.returnedAt),returned_by:nn(r.returnedBy),regul:!!r.regul,cancelled_at:nn(r.cancelledAt),cancelled_by:nn(r.cancelledBy),deposit:r.deposit||0,deposit_state:nn(r.depositState),deposit_retained:r.depositRetained||0,deposit_closed_on:nn(r.depositClosedOn),deposit_back:r.depositBack||0,return_date:nn(r.returnDate),late_days:r.lateDays||0,late_fee:r.lateFee||0,settled:!!r.settled,settled_at:nn(r.settledAt),settled_by:nn(r.settledBy),exception_note:nn(r.exceptionNote),exception_by:nn(r.exceptionBy),exception_at:nn(r.exceptionAt)}),
-  from:r=>({id:r.id,no:r.rental_no,clientId:r.client_id,eventName:r.event_name,eventType:nz(r.event_type),source:nz(r.source),start:r.start_date,end:r.end_date,status:r.status,lines:r.lines||[],delivery:+r.delivery,discount:+r.discount,fees:+r.fees,payments:r.payments||[],lost:r.lost||{},incidents:r.incidents||[],notes:nz(r.notes),created:nz(r.created),by:nz(r.created_by),holdUntil:r.hold_until||null,holdBy:nz(r.hold_by),expiredAt:r.expired_at||null,prepared:!!r.prepared,preparedAt:r.prepared_at||null,preparedBy:r.prepared_by||null,outAt:r.out_at||null,outBy:r.out_by||null,returnedAt:r.returned_at||null,returnedBy:r.returned_by||null,regul:!!r.regul,cancelledAt:r.cancelled_at||null,cancelledBy:r.cancelled_by||null,deposit:+r.deposit,depositState:r.deposit_state||null,depositRetained:+r.deposit_retained,depositClosedOn:r.deposit_closed_on||null,depositBack:+r.deposit_back,returnDate:r.return_date||null,lateDays:+r.late_days||0,lateFee:+r.late_fee||0,settled:!!r.settled,settledAt:r.settled_at||null,settledBy:r.settled_by||null,exceptionNote:r.exception_note||null,exceptionBy:r.exception_by||null,exceptionAt:r.exception_at||null})},
+ rentals:{to:r=>({id:r.id,rental_no:r.no,client_id:r.clientId,event_name:r.eventName,event_type:r.eventType,source:r.source||null,start_date:r.start,end_date:r.end,status:r.status,lines:r.lines,delivery:r.delivery,discount:r.discount,fees:r.fees||0,payments:r.payments,lost:r.lost||{},incidents:r.incidents||[],notes:r.notes||'',created:r.created||null,created_by:nn(r.by),hold_until:nn(r.holdUntil),hold_by:nn(r.holdBy),expired_at:nn(r.expiredAt),prepared:!!r.prepared,prepared_at:nn(r.preparedAt),prepared_by:nn(r.preparedBy),out_at:nn(r.outAt),out_by:nn(r.outBy),returned_at:nn(r.returnedAt),returned_by:nn(r.returnedBy),regul:!!r.regul,cancelled_at:nn(r.cancelledAt),cancelled_by:nn(r.cancelledBy),deposit:r.deposit||0,deposit_state:nn(r.depositState),deposit_retained:r.depositRetained||0,deposit_closed_on:nn(r.depositClosedOn),deposit_back:r.depositBack||0,return_date:nn(r.returnDate),late_days:r.lateDays||0,late_fee:r.lateFee||0,settled:!!r.settled,settled_at:nn(r.settledAt),settled_by:nn(r.settledBy),exception_note:nn(r.exceptionNote),exception_by:nn(r.exceptionBy),exception_at:nn(r.exceptionAt),deliv_slot:nn(r.delivSlot),pick_slot:nn(r.pickSlot)}),
+  from:r=>({id:r.id,no:r.rental_no,clientId:r.client_id,eventName:r.event_name,eventType:nz(r.event_type),source:nz(r.source),start:r.start_date,end:r.end_date,status:r.status,lines:r.lines||[],delivery:+r.delivery,discount:+r.discount,fees:+r.fees,payments:r.payments||[],lost:r.lost||{},incidents:r.incidents||[],notes:nz(r.notes),created:nz(r.created),by:nz(r.created_by),holdUntil:r.hold_until||null,holdBy:nz(r.hold_by),expiredAt:r.expired_at||null,prepared:!!r.prepared,preparedAt:r.prepared_at||null,preparedBy:r.prepared_by||null,outAt:r.out_at||null,outBy:r.out_by||null,returnedAt:r.returned_at||null,returnedBy:r.returned_by||null,regul:!!r.regul,cancelledAt:r.cancelled_at||null,cancelledBy:r.cancelled_by||null,deposit:+r.deposit,depositState:r.deposit_state||null,depositRetained:+r.deposit_retained,depositClosedOn:r.deposit_closed_on||null,depositBack:+r.deposit_back,returnDate:r.return_date||null,lateDays:+r.late_days||0,lateFee:+r.late_fee||0,settled:!!r.settled,settledAt:r.settled_at||null,settledBy:r.settled_by||null,exceptionNote:r.exception_note||null,exceptionBy:r.exception_by||null,exceptionAt:r.exception_at||null,delivSlot:r.deliv_slot||'',pickSlot:r.pick_slot||''})},
  purchases:{to:p=>({id:p.id,po_no:p.no,supplier_id:p.supplierId,order_date:p.date,status:p.status,lines:p.lines,created_by:p.by||null,received_on:p.receivedOn||null}),
   from:r=>({id:r.id,no:r.po_no,supplierId:r.supplier_id,date:r.order_date,status:r.status,lines:r.lines||[],by:nz(r.created_by),receivedOn:r.received_on||undefined})},
  moves:{to:m=>({id:m.id,move_date:m.date,at:m.at||null,seq:m.seq,product_id:m.pid,move_type:m.type,qty:m.qty,ref:m.ref||'',note:m.note||'',created_by:m.by||null}),
@@ -457,7 +457,7 @@ const TBL={
 };
 const ORDER=['products','clients','suppliers','rentals','purchases','moves'];
 const PROF={from:r=>({id:r.id,name:r.name,role:r.role,phone:nz(r.phone),active:r.active!==false}),to:s=>({id:s.id,name:s.name,role:s.role,phone:s.phone||null,active:!!s.active})};
-const SET={from:r=>({depositRate:+r.deposit_rate,holdMaxHours:+r.hold_max_hours}),to:s=>({deposit_rate:s.depositRate,hold_max_hours:s.holdMaxHours})};
+const SET={from:r=>({depositRate:+r.deposit_rate,holdMaxHours:+r.hold_max_hours,conditions:r.conditions||''}),to:s=>({deposit_rate:s.depositRate,hold_max_hours:s.holdMaxHours,conditions:s.conditions||null})};
 let snap={},syncing=false,dirty=false,timer=null,syncMsg='';
 const setSync=t=>{syncMsg=t;const e=$('#syncs');if(e)e.textContent=t};
 function takeSnap(){
@@ -617,6 +617,12 @@ const balance=r=>total(r)-paid(r);
 const baseAmount=r=>subtotal(r)+(+r.delivery||0)-(+r.discount||0);
 const depFromBase=b=>S.settings.depositRate>0&&b>0?Math.round(S.settings.depositRate/100*b):0;
 const depositFor=r=>depFromBase(subtotal(r)); /* 30 % du prix du matériel, transport non inclus */
+const condText=()=>S.settings.conditions||DEFAULT_CONDITIONS.join('\n');
+/* total à payer pour confirmer : articles + transport + caution (la caution = 30 % du prix des articles, transport exclu) */
+const cautionDue=r=>r.deposit||depositFor(r);
+const toPay=r=>total(r)+cautionDue(r);
+const restToPay=r=>Math.max(0,total(r)-paid(r))+Math.max(0,cautionDue(r)-cautionPaid(r));
+const slotLine=r=>[r.delivSlot?'Livraison le '+fd(r.start,1)+' : '+r.delivSlot:'',r.pickSlot?'Récupération le '+fd(r.end,1)+' : '+r.pickSlot:''].filter(Boolean).join(' · ');
 const sl=s=>s==='Sortie'?'En cours':s;
 const STAT={Devis:'b-mute','Pré-réservation':'b-warn','Confirmée':'b-info',Sortie:'b-plum','Retournée':'b-ok','Expirée':'b-mute','Annulée':'b-bad'};
 const badge=s=>`<span class="badge ${STAT[s]||'b-mute'}">${esc(sl(s))}</span>`;
@@ -757,7 +763,7 @@ function vDash(){
   const todo=[];
   const T=(roles,o)=>{if(roles.includes(me().role))todo.push(o)};
   late.forEach(r=>T(['admin','commercial','driver','maint','stock'],{k:'r',id:r.id,c:'b-bad',i:'alert',t:'Non restitué : '+r.eventName,s:(client(r.clientId)||{}).name+' — retour prévu le '+fd(r.end)+(r.regul?' · en régularisation':'')}));
-  holds.forEach(r=>T(['admin','commercial'],{k:'r',id:r.id,c:'b-warn',i:'alert',t:'Pré-réservation à confirmer : '+r.eventName,s:'Expire dans '+holdLeft(r)+' · avance à enregistrer'}));
+  holds.forEach(r=>T(['admin','commercial'],{k:'r',id:r.id,c:'b-warn',i:'alert',t:'Pré-réservation à confirmer : '+r.eventName,s:'Expire dans '+holdLeft(r)+' · paiement total à encaisser'}));
   S.rentals.filter(r=>r.status==='Devis').forEach(r=>T(['admin','commercial'],{k:'r',id:r.id,c:'b-info',i:'list',t:'Devis à traiter : '+r.eventName,s:(client(r.clientId)||{}).name+' — événement le '+fd(r.start)}));
   toPrep.forEach(r=>T(['admin','stock'],{k:'r',id:r.id,c:'b-info',i:'box',t:'À préparer : '+r.eventName,s:'Événement le '+fd(r.start)+' · '+r.lines.reduce((a,l)=>a+l.qty,0)+' pièces'}));
   toDeliver.forEach(r=>T(['admin','driver'],{k:'r',id:r.id,c:'b-plum',i:'truck',t:'À livrer : '+r.eventName,s:'Préparée · événement le '+fd(r.start)}));
@@ -831,7 +837,7 @@ function stepsHtml(r){
   e.push(['Créée',r.created,staffName(r.by)]);
   if(r.holdUntil)e.push([r.status==='Expirée'?'Pré-réservation expirée':'Pré-réservation jusqu’à',r.holdUntil,'']);
   const adv=r.payments.find(p=>p.kind!=='caution');
-  if(adv&&live(r))e.push(['Avance enregistrée',adv.at||adv.date,staffName(adv.by)]);
+  if(adv&&live(r))e.push(['Paiement enregistré',adv.at||adv.date,staffName(adv.by)]);
   if(r.prepared)e.push(['Préparée et vérifiée',r.preparedAt,staffName(r.preparedBy)]);
   if(r.outAt)e.push(['Livrée (sortie du stock)',r.outAt,staffName(r.outBy)]);
   if(r.exceptionNote)e.push(['Dérogation de paiement : '+r.exceptionNote,r.exceptionAt,staffName(r.exceptionBy)]);
@@ -849,16 +855,15 @@ function showRental(id){
   const needAdv=r.status==='Devis'||r.status==='Pré-réservation';
   if(r.status==='Devis'&&can('rent')){
     b.push(`<button class="btn primary" data-act="holdForm" data-id="${r.id}">${ic('cal',16)} Pré-réserver (bloquer le stock)</button>`);
-    b.push(`<button class="btn" data-act="advanceForm" data-id="${r.id}">${ic('check',16)} Enregistrer l’avance et confirmer</button>`);
+    b.push(`<button class="btn" data-act="advanceForm" data-id="${r.id}">${ic('check',16)} Encaisser le paiement total et confirmer</button>`);
     b.push(`<button class="btn" data-act="editDraft" data-id="${r.id}">${ic('edit',16)} Modifier le devis</button>`);
   }
-  if(r.status==='Pré-réservation'&&can('rent'))b.push(`<button class="btn primary" data-act="advanceForm" data-id="${r.id}">${ic('check',16)} Enregistrer l’avance et confirmer</button>`);
+  if(r.status==='Pré-réservation'&&can('rent'))b.push(`<button class="btn primary" data-act="advanceForm" data-id="${r.id}">${ic('check',16)} Encaisser le paiement total et confirmer</button>`);
   if(r.status==='Confirmée'&&!r.prepared&&can('prepare'))b.push(`<button class="btn primary" data-act="prepForm" data-id="${r.id}">${ic('box',16)} Préparer et vérifier le matériel</button>`);
   if(r.status==='Confirmée'&&r.prepared&&can('deliver'))b.push(`<button class="btn primary" data-act="deliver" data-id="${r.id}">${ic('truck',16)} Valider la livraison (sortie)</button>`);
   if(r.status==='Sortie'&&can('ret'))b.push(`<button class="btn primary" data-act="showReturn" data-id="${r.id}">${ic('swap',16)} Réception du retour (comptage et état)</button>`);
   if(r.status==='Sortie'&&can('retDate'))b.push(`<button class="btn" data-act="noteReturnDate" data-id="${r.id}">${ic('cal',16)} Noter la date de dépôt par le client</button>`);
   if(r.status==='Retournée'&&!r.settled&&can('settle'))b.push(`<button class="btn primary" data-act="settleForm" data-id="${r.id}">${ic('wallet',16)} Régler le retour (retard, casse, caution)</button>`);
-  if(r.status==='Confirmée'&&!r.exceptionNote&&can('waive')&&(balance(r)>0||(r.deposit||0)>cautionPaid(r)))b.push(`<button class="btn" data-act="waiveForm" data-id="${r.id}">${ic('check',16)} Autoriser la livraison malgré un paiement incomplet</button>`);
   if(overdue(r)&&!r.regul&&can('regul'))b.push(`<button class="btn" data-act="regul" data-id="${r.id}">Mettre en attente de régularisation</button>`);
   if(r.status==='Retournée'&&r.settled&&r.fees>0&&balance(r)>0&&can('pay'))b.push(`<button class="btn primary" data-act="addPay" data-id="${r.id}" data-kind="location">${ic('wallet',16)} Encaisser le complément (${F(balance(r))})</button>`);
   if((r.status==='Confirmée'||r.status==='Sortie')&&balance(r)>0&&can('pay'))b.push(`<button class="btn" data-act="addPay" data-id="${r.id}" data-kind="location">${ic('wallet',16)} Encaisser un paiement</button>`);
@@ -866,12 +871,13 @@ function showRental(id){
   if(r.status==='Retournée'&&r.settled&&r.fees>0&&can('money'))b.push(`<button class="btn" data-act="printDoc" data-id="${r.id}" data-kind="fc">${ic('print',16)} Facture complémentaire (dommages)</button>`);
   if(r.status==='Retournée'&&r.settled&&r.deposit&&!r.depositClosedOn&&can('deposit'))b.push(`<button class="btn primary" data-act="closeDep" data-id="${r.id}">${ic('lock',16)} Clôturer la caution (restituer ${F(r.deposit-(r.depositRetained||0))})</button>`);
   if(can('money')&&(live(r)&&r.status!=='Retournée'||r.status==='Retournée'))b.push(`<button class="btn" data-act="printDoc" data-id="${r.id}" data-kind="facture">${ic('print',16)} Facture</button>`);
-  if(needAdv&&can('money'))b.push(`<button class="btn" data-act="printDoc" data-id="${r.id}" data-kind="devis">${ic('print',16)} Devis</button>`);
+  if(needAdv&&can('money'))b.push(`<button class="btn" data-act="printDoc" data-id="${r.id}" data-kind="devis">${ic('print',16)} Devis</button><button class="btn primary" data-act="sendDoc" data-id="${r.id}" data-kind="devis">${ic('send',16)} Enregistrer et envoyer le devis</button>`);
+  if(live(r)&&!needAdv&&can('money'))b.push(`<button class="btn" data-act="sendDoc" data-id="${r.id}" data-kind="facture">${ic('send',16)} Envoyer la facture</button>`);
   if(live(r))b.push(`<button class="btn" data-act="printDoc" data-id="${r.id}" data-kind="bl">${ic('print',16)} Bon de livraison</button>`);
   if(r.status==='Sortie'||r.status==='Retournée')b.push(`<button class="btn" data-act="printDoc" data-id="${r.id}" data-kind="br">${ic('print',16)} Bon de récupération</button>`);
   if(r.status==='Retournée'&&r.deposit&&can('money'))b.push(`<button class="btn" data-act="printDoc" data-id="${r.id}" data-kind="fr">${ic('print',16)} Fiche de restitution de caution</button>`);
   if((needAdv||r.status==='Confirmée')&&can('rent'))b.push(`<button class="btn danger" data-act="cancelRental" data-id="${r.id}">${r.status==='Pré-réservation'?'Libérer le stock (annuler)':'Annuler la commande'}</button>`);
-  const warn=overdue(r)?`<div class="warn-box">Matériel non restitué depuis le ${fd(r.end)}${r.regul?' — en attente de régularisation':''}.</div>`:r.status==='Pré-réservation'?`<div class="warn-box">Stock bloqué temporairement : expire dans ${holdLeft(r)}. Sans avance enregistrée, la commande expire et les articles sont libérés (aucune pénalité).</div>`:(r.status==='Confirmée'&&!r.prepared)?`<div class="hint" style="margin:6px 0">Étape suivante : préparation par le gestionnaire de stock. Aucune livraison sans préparation validée, caution enregistrée et réservation confirmée.</div>`:'';
+  const warn=overdue(r)?`<div class="warn-box">Matériel non restitué depuis le ${fd(r.end)}${r.regul?' — en attente de régularisation':''}.</div>`:r.status==='Pré-réservation'?`<div class="warn-box">Stock bloqué temporairement : expire dans ${holdLeft(r)}. Sans paiement total (articles, transport et caution), la commande expire et les articles sont libérés (aucune pénalité).</div>`:(r.status==='Confirmée'&&!r.prepared)?`<div class="hint" style="margin:6px 0">Étape suivante : préparation par le gestionnaire de stock. Aucune livraison sans préparation validée, caution enregistrée et réservation confirmée.</div>`:'';
   const inc=r.incidents.length?`<h3 style="margin:16px 0 6px">Pertes et casses signalées</h3><div class="scroll"><table><tbody>${r.incidents.map(x=>`<tr><td>${fdt(x.at)}</td><td>${esc(x.type)}</td><td>${esc((prod(x.pid)||{}).name)}</td><td class="num">${x.qty}</td><td>${esc(staffName(x.by))}</td></tr>`).join('')}</tbody></table></div>`:'';
   const dep=r.deposit?`<div class="kv" style="margin-top:14px"><div><span>Caution (${S.settings.depositRate} %)</span><b>${F(r.deposit)}</b><span>${depBadge(r)}</span></div><div><span>Encaissée</span><b>${F(cautionPaid(r))}</b></div>${r.status==='Retournée'?`<div><span>Retenue</span><b class="${r.depositRetained?'neg':''}">${F(r.depositRetained||0)}</b></div><div><span>Reliquat à restituer au client</span><b>${F(Math.max(0,cautionPaid(r)-(r.depositRetained||0)))}</b></div>${r.settled&&r.fees>0?`<div><span>Complément à payer par le client (dommages au-delà de la caution)</span><b class="neg">${F(r.fees)}</b><span>${balance(r)>0?'<span class="badge b-warn">À encaisser : '+F(balance(r))+'</span>':'<span class="badge b-ok">Payé</span>'}</span></div>`:''}${r.settled&&r.lateFee?`<div><span>Retard de restitution</span><b>${r.lateDays} j · ${F(r.lateFee)}</b></div>`:''}`:''}</div>`:'';
   openModal(r.eventName,`
@@ -893,26 +899,31 @@ function checkAvail(lines,s,e,ex){
 function holdForm(id){
   const r=S.rentals.find(x=>x.id===id),mx=S.settings.holdMaxHours;
   formModal({title:'Pré-réserver : '+r.eventName,narrow:true,fields:[
-    {k:'h',label:'Durée du blocage',type:'select',full:true,value:'1',options:Array.from({length:mx},(_,i)=>[String(i+1),(i+1)+' heure'+(i?'s':'')]),hint:'Les articles sont bloqués pour ce client et non proposés aux autres. Au-delà, la commande expire seule. Aucune livraison sans avance enregistrée.'}],
+    {k:'h',label:'Durée du blocage',type:'select',full:true,value:'1',options:Array.from({length:mx},(_,i)=>[String(i+1),(i+1)+' heure'+(i?'s':'')]),hint:'Les articles sont bloqués pour ce client et non proposés aux autres. Au-delà, la commande expire seule. La commande n’est confirmée qu’avec le paiement total.'}],
    submit:'Bloquer le stock',onSubmit:v=>{
     const bad=checkAvail(r.lines,r.start,r.end,r.id);if(bad.length){toast('Disponibilité insuffisante : '+bad[0],1);return false}
     r.status='Pré-réservation';r.holdUntil=new Date(Date.now()+Math.min(mx,num(v.h))*36e5).toISOString();r.holdBy=S.me;save();toast('Stock bloqué pendant '+v.h+' h.');setTimeout(()=>{render();showRental(id)},0);
    }});
 }
 function advanceForm(id){
-  const r=S.rentals.find(x=>x.id===id),dep=depositFor(r);
-  formModal({title:'Enregistrer l’avance : '+r.eventName,narrow:true,fields:[
-    {k:'amount',label:'Montant de l’avance (F)',type:'number',min:1,required:true,full:true,value:Math.round(baseAmount(r)*0.5/500)*500,hint:'Total de la commande : '+F(baseAmount(r))+'. Cet enregistrement vaut preuve d’engagement financier.'},
+  const r=S.rentals.find(x=>x.id===id),dep=depositFor(r),due=Math.max(0,total(r)-paid(r)),dueC=Math.max(0,dep-cautionPaid(r));
+  const so=SLOTS.map(x=>[x,x]);
+  formModal({title:'Paiement total et confirmation : '+r.eventName,narrow:true,fields:[
+    {k:'amount',label:'Articles + transport reçus (F)',type:'number',min:0,required:true,full:true,value:due,hint:'Montant exact : '+F(due)+' (articles '+F(subtotal(r))+' + transport '+F(r.delivery||0)+(r.discount?' − remise '+F(r.discount):'')+'). Pas d’avance : la réservation du matériel et des créneaux exige le paiement total.'},
+    {k:'caut',label:'Caution reçue (F)',type:'number',min:0,value:dueC,full:true,hint:'Caution : '+F(dep)+' ('+S.settings.depositRate+' % du prix des articles, transport exclu).'},
     {k:'method',label:'Moyen de paiement',type:'select',options:PAY,full:true},
-    {k:'caut',label:'Caution encaissée maintenant (F)',type:'number',min:0,value:0,full:true,hint:'Caution obligatoire : '+F(dep)+' ('+S.settings.depositRate+' %). Elle doit être encaissée avant la livraison, avec le solde de la facture (sauf dérogation).'}],
+    {k:'ds',label:'Créneau de livraison (le '+fd(r.start,1)+')',type:'select',options:[['','— À choisir —'],...so],value:r.delivSlot||'',full:true},
+    {k:'ps',label:'Créneau de récupération (le '+fd(r.end,1)+')',type:'select',options:[['','— À choisir —'],...so],value:r.pickSlot||'',full:true}],
    submit:'Confirmer la réservation',onSubmit:v=>{
-    if(v.amount<=0){toast('Une avance est nécessaire pour confirmer.',1);return false}
+    if(!v.ds||!v.ps){toast('Choisissez le créneau de livraison et le créneau de récupération.',1);return false}
+    if(v.amount<due||v.caut<dueC){toast('Paiement total exigé : il reste '+F(due+dueC)+' à encaisser (articles, transport et caution). Pas d’avance.',1);return false}
     if(r.status==='Devis'||r.status==='Expirée'){const bad=checkAvail(r.lines,r.start,r.end,r.id);if(bad.length){toast('Stock insuffisant : '+bad[0],1);return false}}
     const t=nowLocal();
-    r.payments.push({id:uid('y'),date:TODAY,at:t,amount:Math.round(v.amount),method:v.method,by:S.me,kind:'location'});
+    if(v.amount>0)r.payments.push({id:uid('y'),date:TODAY,at:t,amount:Math.round(v.amount),method:v.method,by:S.me,kind:'location'});
     r.deposit=dep;
     if(v.caut>0)r.payments.push({id:uid('y'),date:TODAY,at:t,amount:Math.round(v.caut),method:v.method,by:S.me,kind:'caution'});
-    r.status='Confirmée';r.holdUntil=null;save();toast('Réservation confirmée : stock bloqué fermement.');setTimeout(()=>{render();showRental(id)},0);
+    r.delivSlot=v.ds;r.pickSlot=v.ps;
+    r.status='Confirmée';r.holdUntil=null;save();toast('Réservation confirmée : matériel et créneaux réservés.');setTimeout(()=>{render();showRental(id)},0);
    }});
 }
 function prepForm(id){
@@ -930,7 +941,7 @@ function deliver(id){
   if(r.status!=='Confirmée'){toast('Aucun article ne peut être livré sans réservation confirmée.',1);return}
   if(!r.prepared){toast('Le matériel n’est pas encore préparé.',1);return}
   const shF=Math.max(0,balance(r)),shC=Math.max(0,(r.deposit||0)-cautionPaid(r));
-  if((shF>0||shC>0)&&!r.exceptionNote){toast(can('money')?'Paiement total exigé avant la livraison (facture + caution) : '+F(shF+shC)+' restent à encaisser. Le commercial peut autoriser une dérogation.':'Livraison bloquée : la commande n’est pas payée en totalité. Le commercial peut autoriser une dérogation.',1);return}
+  if(shF>0||shC>0){toast(can('money')?'Paiement total exigé avant la livraison (articles, transport et caution) : '+F(shF+shC)+' restent à encaisser.':'Livraison bloquée : la commande n’est pas payée en totalité.',1);return}
   if(r.start>addD(TODAY,1)){toast('La livraison n’est possible que la veille ou le jour de l’événement.',1);return}
   const bad=r.lines.filter(l=>l.qty>usable(prod(l.pid)));if(bad.length){toast('Article indisponible (entretien ou endommagé) : '+prod(bad[0].pid).name,1);return}
   confirmDialog('Valider la livraison ?','La date et l’heure de sortie seront enregistrées à votre nom et les articles passeront à « Loué ».','Valider la livraison',()=>{
@@ -1008,13 +1019,6 @@ function settleForm(id){
     save();closeModal();render();toast('Règlement enregistré.');showRental(id);
   });
 }
-function waiveForm(id){
-  const r=S.rentals.find(x=>x.id===id);
-  formModal({title:'Dérogation de paiement',narrow:true,fields:[{k:'note',label:'Motif de la dérogation',required:true,full:true,hint:'Normalement, la livraison exige le paiement total (facture et caution). Cette exception sera enregistrée à votre nom, avec la date et le motif.'}],submit:'Autoriser la livraison',onSubmit:v=>{
-    if(!can('waive')){toast('Droit insuffisant.',1);return false}
-    r.exceptionNote=v.note;r.exceptionBy=S.me;r.exceptionAt=nowLocal();save();toast('Dérogation enregistrée.');setTimeout(()=>{render();showRental(id)},0);
-  }});
-}
 function closeDep(id){
   const r=S.rentals.find(x=>x.id===id),back=cautionPaid(r)-(r.depositRetained||0);
   if(!r.settled){toast('Réglez d’abord le retour (casse, retard, retenue).',1);return}
@@ -1032,13 +1036,35 @@ function addPay(id,kind){
   }});
 }
 
+/* ---- envoi du devis ou de la facture : PDF, WhatsApp, e-mail ---- */
+function docMessage(r,kind){
+  const c=client(r.clientId)||{},nom=kind==='facture'?'facture':'devis';
+  return `Bonjour ${c.name||''},\n\nVeuillez trouver ci-joint votre ${nom} N° ${r.no} pour « ${r.eventName} », du ${fd(r.start,1)} au ${fd(r.end,1)}.\n${slotLine(r)?slotLine(r)+'\n':''}\nArticles : ${F(subtotal(r))}\nTransport : ${F(r.delivery||0)}\nCaution (${S.settings.depositRate} % du prix des articles, remboursable) : ${F(cautionDue(r))}\nTotal à payer : ${F(toPay(r))}\n\nLe paiement total (articles, transport et caution) confirme la réservation du matériel et des créneaux horaires. Les conditions de location figurent sur le document.\n\nMAJAVA EVENT\n+225 27 22 48 05 10`;
+}
+function sendDocForm(id,kind){
+  const r=S.rentals.find(x=>x.id===id);if(!r||!can('money'))return;
+  const c=client(r.clientId)||{},msg=docMessage(r,kind),nom=kind==='facture'?'la facture':'le devis';
+  let ph=String(c.phone||'').replace(/\D/g,'');if(ph&&!ph.startsWith('225'))ph='225'+ph;
+  const wa='https://wa.me/'+ph+'?text='+encodeURIComponent(msg);
+  const ml='mailto:'+encodeURIComponent(c.email||'')+'?subject='+encodeURIComponent((kind==='facture'?'Facture ':'Devis ')+r.no+' — MAJAVA EVENT')+'&body='+encodeURIComponent(msg);
+  openModal('Envoyer '+nom,`<ol class="steps" style="margin:0 0 12px"><li><b>1. Enregistrer sur l’ordinateur</b><span>Cliquez sur « Enregistrer en PDF », puis choisissez « Enregistrer au format PDF » comme imprimante.</span></li><li><b>2. Envoyer au client</b><span>Le message est prérempli ; joignez le PDF enregistré avant d’envoyer.</span></li></ol>
+   <div class="actions" style="border:0;padding:0"><button class="btn primary" data-act="printDoc" data-id="${r.id}" data-kind="${kind}">${ic('print',16)} Enregistrer en PDF / imprimer</button><a class="btn" href="${wa}" target="_blank" rel="noopener">${ic('send',16)} WhatsApp${c.phone?' ('+esc(c.phone)+')':''}</a><a class="btn" href="${ml}">${ic('mail',16)} E-mail${c.email?' ('+esc(c.email)+')':''}</a></div>
+   <h3 style="margin:16px 0 6px">Message</h3><textarea class="csv" readonly rows="9" style="width:100%;white-space:pre-wrap">${esc(msg)}</textarea>
+   ${c.phone?'':'<p class="hint">Aucun téléphone enregistré pour ce client : WhatsApp s’ouvrira sans destinataire.</p>'}`,{narrow:true,focus:false});
+}
+
+const row=(a,b,o='')=>`<div style="display:flex;justify-content:space-between;gap:12px;${o}"><span>${a}</span><span style="white-space:nowrap">${b}</span></div>`;
+const LEGAL='MAJAVA EVENT — Sise à Cocody Val Doyen 01 BP 2363 ABIDJAN 01 — Tel : +225 27 22 48 05 10 / Cel : 07 88 50 00 10 — RCCM : CI-ABJ-03-2025-B-13-11599 / N°CC : 2506834';
+const legalHtml=()=>`<div style="margin-top:28px;border-top:1px solid #999;padding-top:6px;font-size:.72rem;text-align:center;color:#444">${LEGAL}<br><i>« Louez l’exception, créer l’émotion »</i></div>`;
+function condHtml(){
+  return `<div style="page-break-before:always;margin-top:24px"><h2 style="font-size:1.1rem;letter-spacing:.06em;text-align:center">CONDITIONS DE LOCATION</h2>${condText().split('\n').filter(x=>x.trim()).map(x=>`<p style="font-size:.82rem;margin:7px 0;text-align:justify">${esc(x)}</p>`).join('')}<div class="sig"><div>Service Commercial MAJAVA</div><div>Client — « Lu et approuvé » — date et signature</div></div></div>`;
+}
 function printSpecial(id,kind){
   const r=S.rentals.find(x=>x.id===id),c=client(r.clientId)||{},nd=nDays(r);
   if((kind==='fr'||kind==='fc')&&!can('money')){toast('Document financier : accès réservé.',1);return}
   const title=kind==='br'?'Bon de récupération':kind==='fc'?'Facture complémentaire — coûts de dommages':'Fiche de restitution de caution';
   const head=`<div style="display:flex;justify-content:space-between;align-items:flex-start"><div><h1 style="font-family:'Cormorant Garamond',serif;letter-spacing:.14em">MAJAVA</h1><div>Location événementielle<br>Showroom Yopougon Complexe – Abidjan<br>+225 27 22 48 05 10 · +225 07 58 00 58 52<br>my@majavaci.com</div></div><div style="text-align:right"><h1 style="font-size:1.6rem">${title}</h1><div>N° ${esc(r.no)}<br>Date : ${fd(TODAY,1)}</div></div></div>
   <div class="meta"><div><b>Client</b><br>${esc(c.name||'')}<br>${esc(c.phone||'')}<br>${esc(c.address||'')}</div><div style="text-align:right"><b>Événement</b><br>${esc(r.eventName)}<br>Du ${fd(r.start,1)} au ${fd(r.end,1)} (${nd} j)</div></div>`;
-  const row=(a,b,o='')=>`<div style="display:flex;justify-content:space-between;${o}"><span>${a}</span><span>${b}</span></div>`;
   const cm=x=>{const t=(x.note||'').split(' — ')[1]||'';return t};
   const lineInc=pid=>r.incidents.filter(x=>x.pid===pid&&['Perte','Endommagé','Entretien','Remarque'].includes(x.type));
   const incTxt=x=>(x.type==='Perte'?x.qty+' manquant(s)':x.type==='Endommagé'?x.qty+' endommagé(s)':x.type==='Entretien'?x.qty+' à nettoyer/réparer':'')+(cm(x)?(x.type==='Remarque'?'':' : ')+cm(x):'');
@@ -1061,7 +1087,7 @@ function printSpecial(id,kind){
     ${inc?`<table><thead><tr><th style="text-align:left">Article</th><th style="text-align:left">Constat</th><th style="text-align:right">Qté</th><th style="text-align:right">Valeur de remplacement</th></tr></thead><tbody>${inc}</tbody></table>`:'<p>Aucun écart constaté au retour.</p>'}
     <p style="margin-top:20px">Je soussigné(e) reconnais ${back>0?`avoir reçu la somme de <b>${F(back)}</b> au titre de la restitution de ma caution`:'ne rien devoir recevoir au titre de ma caution, entièrement retenue'}${comp>0?` et ${compPaid>=comp?'avoir payé':'devoir payer'} le complément de <b>${F(comp)}</b> pour les coûts de dommages`:''}. Le dossier de l’événement « ${esc(r.eventName)} » est clôturé.</p><div class="sig"><div>Restituée par (MAJAVA) — nom et signature</div><div>Reçue par le client — nom, date et signature</div></div>`;
   }
-  $('#print').innerHTML=head+body;
+  $('#print').innerHTML=head+body+legalHtml();
   document.body.classList.add('printing');
   const done=()=>{document.body.classList.remove('printing');window.removeEventListener('afterprint',done)};
   window.addEventListener('afterprint',done);
@@ -1075,9 +1101,9 @@ function printDoc(id,kind){
   const title=kind==='bl'?'Bon de livraison':kind==='facture'?'Facture':'Devis';
   const rows=r.lines.map(l=>{const p=prod(l.pid);return kind==='bl'?`<tr><td>${esc(p.name)}</td><td style="text-align:right">${l.qty}</td><td style="text-align:center">☐ RAS  ☐ Anomalie</td><td>&nbsp;</td></tr>`:`<tr><td>${esc(p.name)}</td><td style="text-align:right">${l.qty}</td><td style="text-align:right">${F(l.price)}</td><td style="text-align:right">${F(l.qty*l.price*nd)}</td></tr>`}).join('');
   $('#print').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start"><div><h1 style="font-family:'Cormorant Garamond',serif;letter-spacing:.14em">MAJAVA</h1><div>Location événementielle<br>Showroom Yopougon Complexe – Abidjan<br>+225 27 22 48 05 10 · +225 07 58 00 58 52<br>my@majavaci.com</div></div><div style="text-align:right"><h1 style="font-size:1.6rem">${title}</h1><div>N° ${esc(r.no)}<br>Date : ${fd(TODAY,1)}</div></div></div>
-  <div class="meta"><div><b>Client</b><br>${esc(c.name||'')}<br>${esc(c.phone||'')}<br>${esc(c.address||'')}</div><div style="text-align:right"><b>Événement</b><br>${esc(r.eventName)}<br>Du ${fd(r.start,1)} au ${fd(r.end,1)} (${nd} j)${r.delivSlot&&kind==='bl'?'<br>Livraison : '+esc(r.delivSlot):''}</div></div>
+  <div class="meta"><div><b>Client</b><br>${esc(c.name||'')}<br>${esc(c.phone||'')}<br>${esc(c.address||'')}</div><div style="text-align:right"><b>Événement</b><br>${esc(r.eventName)}<br>Du ${fd(r.start,1)} au ${fd(r.end,1)} (${nd} j)${kind==='bl'?(r.delivSlot?'<br>Livraison : '+esc(r.delivSlot):''):(slotLine(r)?'<br>'+esc(slotLine(r)).replace(' · ','<br>'):'')}</div></div>
   <table><thead>${kind==='bl'?'<tr><th style="text-align:left">Article</th><th style="text-align:right">Qté livrée</th><th>État à la livraison</th><th style="text-align:left">Commentaire</th></tr>':'<tr><th style="text-align:left">Article</th><th style="text-align:right">Qté</th><th style="text-align:right">Prix/jour</th><th style="text-align:right">Total</th></tr>'}</thead><tbody>${rows}</tbody></table>
-  ${kind==='bl'?'<div class="sig"><div>Remis par (MAJAVA)</div><div>Reçu par le client — nom et signature</div></div><p style="font-size:.85rem;margin-top:24px">Le matériel manquant ou détérioré sera facturé au prix de remplacement.</p>':`<div style="margin-left:auto;width:320px"><div style="display:flex;justify-content:space-between"><span>Location</span><span>${F(subtotal(r))}</span></div><div style="display:flex;justify-content:space-between"><span>Livraison & installation</span><span>${F(r.delivery||0)}</span></div>${r.fees?`<div style="display:flex;justify-content:space-between"><span>Frais manquants / casse</span><span>${F(r.fees)}</span></div>`:''}${r.discount?`<div style="display:flex;justify-content:space-between"><span>Remise</span><span>− ${F(r.discount)}</span></div>`:''}<div style="display:flex;justify-content:space-between;font-size:1.25rem;font-weight:800;border-top:2px solid #222;margin-top:6px;padding-top:6px"><span>Total</span><span>${F(total(r))}</span></div><div style="display:flex;justify-content:space-between"><span>Déjà payé</span><span>${F(paid(r))}</span></div><div style="display:flex;justify-content:space-between;font-weight:800"><span>Reste à payer</span><span>${F(balance(r))}</span></div>${r.deposit?`<div style="display:flex;justify-content:space-between;margin-top:6px"><span>Caution</span><span>${F(r.deposit)}</span></div>`:''}</div><p style="font-size:.85rem;margin-top:30px">Merci de votre confiance. Votre satisfaction est notre meilleure publicité !</p>`}`;
+  ${kind==='bl'?'<div class="sig"><div>Remis par (MAJAVA)</div><div>Reçu par le client — nom et signature</div></div><p style="font-size:.85rem;margin-top:24px">Le matériel manquant ou détérioré sera facturé au prix de remplacement.</p>':`<div style="margin-left:auto;width:360px">${row('Articles ('+nd+' j)',F(subtotal(r)))}${row('Transport (livraison & installation)',F(r.delivery||0))}${r.fees?row('Frais de casse / perte',F(r.fees)):''}${r.discount?row('Remise','− '+F(r.discount)):''}${row('<b>Total facture</b>','<b>'+F(total(r))+'</b>','border-top:1px solid #222;margin-top:4px;padding-top:4px')}${row('Caution ('+S.settings.depositRate+' % des articles, remboursable)',F(cautionDue(r)))}${row('Total à payer','<b>'+F(toPay(r))+'</b>','font-size:1.25rem;font-weight:800;border-top:2px solid #222;margin-top:6px;padding-top:6px')}${kind==='facture'?row('Déjà payé',F(paid(r)+cautionPaid(r)))+row('<b>Reste à payer</b>','<b>'+F(restToPay(r))+'</b>'):''}</div><p style="font-size:.85rem;margin-top:14px">${kind==='devis'?'Pas d’avance : la réservation du matériel et des créneaux horaires est effective après paiement total (articles, transport et caution).':'Facture acquittée à réception du paiement total.'}</p><p style="font-size:.85rem;margin-top:18px">Merci de votre confiance. Votre satisfaction est notre meilleure publicité !</p>${condHtml()}`}`+legalHtml();
   document.body.classList.add('printing');
   const done=()=>{document.body.classList.remove('printing');window.removeEventListener('afterprint',done)};
   window.addEventListener('afterprint',done);
@@ -1086,7 +1112,7 @@ function printDoc(id,kind){
 }
 
 /* ============ nouvelle commande ============ */
-function newDraft(){return{editId:null,clientId:'',eventName:'',eventType:'Mariage',source:'Téléphone',start:addD(TODAY,7),end:addD(TODAY,7),lines:[],delivery:0,discount:0,payAmount:0,cautionPay:0,payMethod:'Orange Money',holdH:'1',notes:'',q:'',cat:'Tous'}}
+function newDraft(){return{editId:null,clientId:'',eventName:'',eventType:'Mariage',source:'Téléphone',start:addD(TODAY,7),end:addD(TODAY,7),lines:[],delivery:0,discount:0,payAmount:0,cautionPay:0,delivSlot:'',pickSlot:'',payMethod:'Orange Money',holdH:'1',notes:'',q:'',cat:'Tous'}}
 function vPos(){
   if(!ui.draft)ui.draft=newDraft();
   const d=ui.draft;
@@ -1111,12 +1137,12 @@ function draftCalc(){
   const d=ui.draft,nd=Math.max(1,diff(d.start,d.end)+1);
   const sub=d.lines.reduce((a,l)=>a+l.qty*prod(l.pid).price,0)*nd;
   const t=sub+num(d.delivery)-num(d.discount);
-  const caution=depFromBase(t);
-  return{nd,sub,t,caution,reste:t-num(d.payAmount)};
+  const caution=depFromBase(sub);
+  return{nd,sub,t,caution,due:t+caution,reste:Math.max(0,t-num(d.payAmount))+Math.max(0,caution-num(d.cautionPay))};
 }
 function totalsHtml(){
   const d=ui.draft,c=draftCalc();
-  return `<div><span>Location (${c.nd} jour${c.nd>1?'s':''})</span><span>${F(c.sub)}</span></div><div><span>Livraison & installation</span><span>${F(num(d.delivery))}</span></div>${num(d.discount)?`<div><span>Remise</span><span>− ${F(num(d.discount))}</span></div>`:''}<div class="big"><span>Total</span><span>${F(c.t)}</span></div><div><span>Caution (${S.settings.depositRate} %, remboursable)</span><span>${F(c.caution)}</span></div>${num(d.payAmount)?`<div><span>Avance</span><span class="pos">${F(num(d.payAmount))}</span></div><div><b>Reste à payer</b><b>${F(c.reste)}</b></div>`:''}`;
+  return `<div><span>Articles (${c.nd} jour${c.nd>1?'s':''})</span><span>${F(c.sub)}</span></div><div><span>Transport (livraison & installation)</span><span>${F(num(d.delivery))}</span></div>${num(d.discount)?`<div><span>Remise</span><span>− ${F(num(d.discount))}</span></div>`:''}<div><span>Total facture</span><span>${F(c.t)}</span></div><div><span>Caution (${S.settings.depositRate} % du prix des articles, remboursable)</span><span>${F(c.caution)}</span></div><div class="big"><span>Total à payer</span><span>${F(c.due)}</span></div>${num(d.payAmount)||num(d.cautionPay)?`<div><span>Déjà reçu</span><span class="pos">${F(num(d.payAmount)+num(d.cautionPay))}</span></div><div><b>Reste à payer</b><b>${F(c.reste)}</b></div>`:''}`;
 }
 function drawCart(){
   const d=ui.draft,nd=draftCalc().nd,mx=S.settings.holdMaxHours;
@@ -1134,14 +1160,17 @@ function drawCart(){
   <div class="form" style="margin-top:10px">
    <div class="field"><label for="d_liv">Livraison & installation (F)</label><input id="d_liv" type="number" min="0" value="${d.delivery||''}" data-in="d" data-k="delivery" placeholder="0"></div>
    <div class="field"><label for="d_rem">Remise (F)</label><input id="d_rem" type="number" min="0" value="${d.discount||''}" data-in="d" data-k="discount" placeholder="0"></div>
-   <div class="field"><label for="d_pay">Avance reçue (F)</label><input id="d_pay" type="number" min="0" value="${d.payAmount||''}" data-in="d" data-k="payAmount" placeholder="0"><div class="hint">Obligatoire pour confirmer.</div></div>
-   <div class="field"><label for="d_cau">Caution encaissée (F)</label><input id="d_cau" type="number" min="0" value="${d.cautionPay||''}" data-in="d" data-k="cautionPay" placeholder="0"><div class="hint">Peut aussi l’être avant la livraison.</div></div>
+   <div class="field full"><label for="d_ds">Créneau de livraison (le ${fd(d.start,1)})</label><select id="d_ds" data-in="d" data-k="delivSlot"><option value="">— À choisir —</option>${SLOTS.map(x=>`<option ${x===d.delivSlot?'selected':''}>${x}</option>`).join('')}</select></div>
+   <div class="field full"><label for="d_ps">Créneau de récupération (le ${fd(d.end,1)})</label><select id="d_ps" data-in="d" data-k="pickSlot"><option value="">— À choisir —</option>${SLOTS.map(x=>`<option ${x===d.pickSlot?'selected':''}>${x}</option>`).join('')}</select><div class="hint">Les créneaux sont réservés avec le matériel dès que la commande est payée en totalité.</div></div>
+   <div class="field"><label for="d_pay">Paiement reçu : articles + transport (F)</label><input id="d_pay" type="number" min="0" value="${d.payAmount||''}" data-in="d" data-k="payAmount" placeholder="0"><div class="hint">Montant exact à payer : <span id="h_pay">${F(draftCalc().t)}</span>.</div></div>
+   <div class="field"><label for="d_cau">Caution reçue (F)</label><input id="d_cau" type="number" min="0" value="${d.cautionPay||''}" data-in="d" data-k="cautionPay" placeholder="0"><div class="hint">Montant exact : <span id="h_cau">${F(draftCalc().caution)}</span>.</div></div>
    <div class="field full"><label for="d_met">Moyen de paiement (saisie manuelle)</label><select id="d_met" data-in="d" data-k="payMethod">${PAY.map(m=>`<option ${m===d.payMethod?'selected':''}>${esc(m)}</option>`).join('')}</select></div>
    <div class="field full"><label for="d_hold">Durée de la pré-réservation</label><select id="d_hold" data-in="d" data-k="holdH">${Array.from({length:mx},(_,i)=>`<option value="${i+1}" ${String(i+1)===String(d.holdH)?'selected':''}>${i+1} heure${i?'s':''}</option>`).join('')}</select></div>
   </div>
   <div class="tot" id="ctot">${totalsHtml()}</div>
   <div class="actions" style="border:0;padding-top:6px;flex-direction:column">
-   <button class="btn primary" data-act="confirmDraft" style="justify-content:center">${ic('check',16)} Confirmer avec l’avance</button>
+   <button class="btn ghost sm" data-act="fillPay" style="justify-content:center">Remplir les montants exacts</button>
+   <button class="btn primary" data-act="confirmDraft" style="justify-content:center">${ic('check',16)} Confirmer (paiement total reçu)</button>
    <button class="btn" data-act="holdDraft" style="justify-content:center">${ic('cal',16)} Pré-réserver (bloquer le stock)</button>
    <button class="btn" data-act="saveQuote" style="justify-content:center">Enregistrer en devis (sans blocage)</button>
    ${d.lines.length||d.editId?`<button class="btn ghost danger sm" data-act="clearDraft" style="justify-content:center">Vider le panier</button>`:''}
@@ -1165,12 +1194,16 @@ function validateDraft(){
 function commitDraft(status){
   const d=ui.draft;if(!can('rent')){toast('Votre rôle ne permet pas de créer une commande.',1);return}
   if(!validateDraft())return;
-  if(status==='Confirmée'&&num(d.payAmount)<=0){toast('Une avance enregistrée est obligatoire pour confirmer. Sinon, pré-réservez.',1);return}
+  if(status==='Confirmée'){
+    const c=draftCalc();
+    if(!d.delivSlot||!d.pickSlot){toast('Choisissez le créneau de livraison et le créneau de récupération.',1);return}
+    if(num(d.payAmount)<c.t||num(d.cautionPay)<c.caution){toast('Pas d’avance : la commande se confirme avec le paiement total ('+F(c.due)+' : articles, transport et caution). Sinon, pré-réservez.',1);return}
+  }
   if(status!=='Devis'){const bad=checkAvail(d.lines,d.start,d.end,d.editId);if(bad.length){toast('Stock insuffisant : '+bad[0],1);return}}
   let r=d.editId?S.rentals.find(x=>x.id===d.editId):null;
   const lines=d.lines.map(l=>({pid:l.pid,qty:l.qty,price:prod(l.pid).price}));
   if(!r){S.seq.rental++;r={id:uid('r'),no:'LOC-'+TODAY.slice(0,4)+'-'+String(S.seq.rental).padStart(4,'0'),payments:[],fees:0,lost:{},created:nowLocal(),by:S.me,deposit:0,depositState:null,depositRetained:0,depositClosedOn:null,depositBack:0,holdUntil:null,prepared:false,incidents:[],regul:false};S.rentals.push(r)}
-  Object.assign(r,{clientId:d.clientId,eventName:d.eventName.trim(),eventType:d.eventType,source:d.source,start:d.start,end:d.end,lines,delivery:num(d.delivery),discount:num(d.discount),notes:d.notes,status});
+  Object.assign(r,{delivSlot:d.delivSlot||'',pickSlot:d.pickSlot||'',clientId:d.clientId,eventName:d.eventName.trim(),eventType:d.eventType,source:d.source,start:d.start,end:d.end,lines,delivery:num(d.delivery),discount:num(d.discount),notes:d.notes,status});
   if(status==='Pré-réservation'){r.holdUntil=new Date(Date.now()+Math.min(S.settings.holdMaxHours,num(d.holdH)||1)*36e5).toISOString();r.holdBy=S.me}
   if(status==='Confirmée'){
     const t=nowLocal();
@@ -1405,7 +1438,7 @@ function vCash(){
   const loc=list.filter(x=>x.p.kind!=='caution').reduce((a,x)=>a+x.p.amount,0),cau=tot-loc;
   const bm=cashByMethod(list);
   return `<div class="bar-row noprint"><div class="field" style="min-width:180px"><label for="cdate">Journée</label><input id="cdate" type="date" value="${d}" max="${TODAY}" data-in="cdate"></div><span class="grow"></span><button class="btn" data-act="csvCash">${ic('copy',16)} Export CSV</button><button class="btn primary" data-act="printPage">${ic('print',16)} Imprimer la feuille</button></div>
-  <div class="kpis"><div class="kpi"><span>Total encaissé</span><b>${F(tot)}</b><small>${list.length} opération${list.length>1?'s':''}</small></div><div class="kpi"><span>Locations (avances et soldes)</span><b>${F(loc)}</b></div><div class="kpi"><span>Cautions reçues</span><b>${F(cau)}</b><small>remboursables</small></div><div class="kpi"><span>Cautions restituées</span><b>${F(S.rentals.filter(r=>r.depositClosedOn===d).reduce((a,r)=>a+(r.depositBack||0),0))}</b><small>sorties de caisse</small></div></div>
+  <div class="kpis"><div class="kpi"><span>Total encaissé</span><b>${F(tot)}</b><small>${list.length} opération${list.length>1?'s':''}</small></div><div class="kpi"><span>Locations (paiements des commandes)</span><b>${F(loc)}</b></div><div class="kpi"><span>Cautions reçues</span><b>${F(cau)}</b><small>remboursables</small></div><div class="kpi"><span>Cautions restituées</span><b>${F(S.rentals.filter(r=>r.depositClosedOn===d).reduce((a,r)=>a+(r.depositBack||0),0))}</b><small>sorties de caisse</small></div></div>
   <div class="cols"><section class="panel"><div class="panel-h"><h3>Opérations du ${fd(d,1)}</h3><small>Saisies manuellement (paiements hors plateforme en V1)</small></div>${list.length?`<div class="scroll"><table><thead><tr><th>Heure</th><th>Commande</th><th>Nature</th><th>Moyen</th><th class="num">Montant</th><th>Enregistré par</th></tr></thead><tbody>${list.map(({r,p})=>`<tr data-act="openRental" data-id="${r.id}"><td>${esc((p.at||'').slice(11,16)||'—')}</td><td><b>${esc(r.eventName)}</b><span class="sub">${esc(r.no)}</span></td><td>${p.kind==='caution'?'Caution':'Location'}</td><td>${esc(p.method)}</td><td class="num">${F(p.amount)}</td><td>${esc(staffName(p.by))}</td></tr>`).join('')}</tbody></table></div>`:empty('Aucune opération ce jour','Les paiements enregistrés sur les commandes apparaissent ici automatiquement.')}</section>
   <section class="panel"><h3>Total par moyen de paiement</h3>${Object.entries(bm).map(([k,v])=>`<div class="hb" style="grid-template-columns:1fr auto"><span>${esc(k)}</span><b>${F(v)}</b></div>`).join('')}<div class="hb" style="grid-template-columns:1fr auto;border-top:2px solid var(--ink);margin-top:6px;padding-top:8px"><b>Total</b><b>${F(tot)}</b></div><p class="hint" style="margin-bottom:0">Pointez ce total avec l’argent en caisse et les relevés Orange Money, MTN et Wave avant clôture.</p></section></div>`;
 }
@@ -1432,14 +1465,15 @@ function vSettings(){
   return `<section class="panel" style="max-width:640px"><div class="panel-h"><h3>Règles métier paramétrables</h3><small>Réservé à l’administrateur</small></div>
   <form id="setform" class="form" novalidate>
    <div class="field full"><label for="s_rate">Taux de caution (% du prix du matériel, transport non inclus)</label><input id="s_rate" name="rate" type="number" min="0" max="100" step="1" value="${S.settings.depositRate}"><div class="hint">S’applique aux nouvelles confirmations. Les cautions déjà fixées ne changent pas.</div></div>
-   <div class="field full"><label for="s_hold">Durée maximale d’une pré-réservation (heures)</label><select id="s_hold" name="hold">${[1,2,3].map(h=>`<option value="${h}" ${h===S.settings.holdMaxHours?'selected':''}>${h} heure${h>1?'s':''}</option>`).join('')}</select><div class="hint">Sans avance dans ce délai, la commande passe en « Expirée » et le stock est libéré, sans pénalité.</div></div>
+   <div class="field full"><label for="s_hold">Durée maximale d’une pré-réservation (heures)</label><select id="s_hold" name="hold">${[1,2,3].map(h=>`<option value="${h}" ${h===S.settings.holdMaxHours?'selected':''}>${h} heure${h>1?'s':''}</option>`).join('')}</select><div class="hint">Sans paiement total dans ce délai, la commande passe en « Expirée » et le stock est libéré, sans pénalité.</div></div>
+   <div class="field full"><label for="s_cond">Conditions de location (imprimées sur le devis et la facture)</label><textarea id="s_cond" name="cond" rows="12">${esc(condText())}</textarea><div class="hint">Un article par ligne. Modifiable par l’administrateur.</div></div>
    <div class="modal-foot" style="grid-column:1/-1"><button class="btn primary" type="submit">Enregistrer les règles</button></div></form></section>
-  <section class="panel" style="max-width:640px;margin-top:18px"><h3>Cycle d’une commande</h3><ul class="steps"><li><b>Devis</b><span>aucun blocage de stock</span></li><li><b>Pré-réservation</b><span>blocage temporaire, expiration automatique</span></li><li><b>Confirmée</b><span>uniquement après enregistrement d’une avance</span></li><li><b>Sortie (en cours)</b><span>livraison validée, matériel préparé, facture et caution payées en totalité (sauf dérogation du commercial)</span></li><li><b>Retournée</b><span>retour reçu par le stock, puis réglé par le commercial (casse, retard, caution)</span></li><li><b>Expirée / Annulée</b><span>stock libéré</span></li></ul></section>`;
+  <section class="panel" style="max-width:640px;margin-top:18px"><h3>Cycle d’une commande</h3><ul class="steps"><li><b>Devis</b><span>aucun blocage de stock</span></li><li><b>Pré-réservation</b><span>blocage temporaire, expiration automatique</span></li><li><b>Confirmée</b><span>uniquement après paiement total (articles, transport, caution) ; matériel et créneaux réservés</span></li><li><b>Sortie (en cours)</b><span>livraison validée, matériel préparé, facture et caution payées en totalité (pas d’avance)</span></li><li><b>Retournée</b><span>retour reçu par le stock, puis réglé par le commercial (casse, retard, caution)</span></li><li><b>Expirée / Annulée</b><span>stock libéré</span></li></ul></section>`;
 }
 /* ============ équipe ============ */
 function vTeam(){
   const mods=NAV.filter(n=>!n.cta);
-  const acts=[['Créer une commande, pré-réserver',ACT_ROLES.rent],['Enregistrer paiements et cautions',ACT_ROLES.pay],['Préparer le matériel',ACT_ROLES.prepare],['Valider une livraison (sortie)',ACT_ROLES.deliver],['Réception du retour (comptage et état)',ACT_ROLES.ret],['Régler le retour (retard, casse, caution)',ACT_ROLES.settle],['Noter la date de dépôt par le client',ACT_ROLES.retDate],['Autoriser une livraison malgré un paiement incomplet',ACT_ROLES.waive],['Changer l’état d’un article (hors remise en stock)',ACT_ROLES.stateEdit],['Remise en stock, ajustement du stock, mise au rebut',ACT_ROLES.restock],['Créer ou modifier une fiche article',ACT_ROLES.create],['Notifier une transformation',ACT_ROLES.transform],['Signaler au stock (prêt à remettre ou rebut)',ACT_ROLES.signal],['Restituer / retenir une caution',ACT_ROLES.deposit],['Voir les montants',ACT_ROLES.money]];
+  const acts=[['Créer une commande, pré-réserver',ACT_ROLES.rent],['Enregistrer paiements et cautions',ACT_ROLES.pay],['Préparer le matériel',ACT_ROLES.prepare],['Valider une livraison (sortie)',ACT_ROLES.deliver],['Réception du retour (comptage et état)',ACT_ROLES.ret],['Régler le retour (retard, casse, caution)',ACT_ROLES.settle],['Noter la date de dépôt par le client',ACT_ROLES.retDate],['Changer l’état d’un article (hors remise en stock)',ACT_ROLES.stateEdit],['Remise en stock, ajustement du stock, mise au rebut',ACT_ROLES.restock],['Créer ou modifier une fiche article',ACT_ROLES.create],['Notifier une transformation',ACT_ROLES.transform],['Signaler au stock (prêt à remettre ou rebut)',ACT_ROLES.signal],['Restituer / retenir une caution',ACT_ROLES.deposit],['Voir les montants',ACT_ROLES.money]];
   return `<div class="bar-row"><span class="grow"></span><button class="btn primary" data-act="newStaff">${ic('plus',16)} Ajouter un membre</button></div>
   <section class="panel" style="padding:6px 8px"><div class="scroll"><table><thead><tr><th>Nom</th><th>Rôle</th><th>Téléphone</th><th>État</th><th></th></tr></thead><tbody>${S.staff.map(s=>`<tr><td><b>${esc(s.name)}</b></td><td>${esc(ROLES[s.role])}</td><td>${esc(s.phone||'—')}</td><td><span class="badge ${s.active?'b-ok':'b-mute'}">${s.active?'Actif':'Désactivé'}</span></td><td class="num"><button class="btn sm" data-act="editStaff" data-id="${s.id}">Modifier</button></td></tr>`).join('')}</tbody></table></div></section>
   <section class="panel" style="margin-top:20px"><div class="panel-h"><h3>Qui peut faire quoi</h3><small>Changez d’utilisateur en haut à droite pour tester</small></div><div class="scroll"><table><thead><tr><th>Module ou action</th>${Object.values(ROLES).map(r=>`<th style="text-align:center">${esc(r)}</th>`).join('')}</tr></thead><tbody>${[...mods,...acts.map(([label,roles])=>({label,roles}))].map(m=>`<tr><td>${esc(m.label)}</td>${Object.keys(ROLES).map(k=>`<td style="text-align:center">${m.roles.includes(k)?`<span class="pos">${ic('check',16)}</span>`:'<span class="hint">—</span>'}</td>`).join('')}</tr>`).join('')}</tbody></table></div></section>`;
@@ -1577,10 +1611,10 @@ const ACT={
   openRental:el=>showRental(el.dataset.id),openProduct:el=>showProduct(el.dataset.id),openClient:el=>showClient(el.dataset.id),
   rstat:el=>{ui.rstat=el.dataset.v;render()},
   holdForm:el=>holdForm(el.dataset.id),advanceForm:el=>advanceForm(el.dataset.id),prepForm:el=>prepForm(el.dataset.id),deliver:el=>deliver(el.dataset.id),
-  showReturn:el=>showReturn(el.dataset.id),noteReturnDate:el=>noteReturnDate(el.dataset.id),settleForm:el=>settleForm(el.dataset.id),waiveForm:el=>waiveForm(el.dataset.id),addPay:el=>addPay(el.dataset.id,el.dataset.kind),closeDep:el=>closeDep(el.dataset.id),
+  showReturn:el=>showReturn(el.dataset.id),noteReturnDate:el=>noteReturnDate(el.dataset.id),settleForm:el=>settleForm(el.dataset.id),addPay:el=>addPay(el.dataset.id,el.dataset.kind),closeDep:el=>closeDep(el.dataset.id),
   regul:el=>regul(el.dataset.id),cancelRental:el=>cancelRental(el.dataset.id),
   printDoc:el=>printDoc(el.dataset.id,el.dataset.kind),printPage:()=>{try{window.print()}catch(e){toast('L’impression n’est pas disponible dans cet aperçu.',1)}},
-  editDraft:el=>{const r=byId(el.dataset.id);ui.draft=Object.assign(newDraft(),{editId:r.id,clientId:r.clientId,eventName:r.eventName,eventType:r.eventType,source:r.source||'Téléphone',start:r.start<TODAY?TODAY:r.start,end:r.end<TODAY?TODAY:r.end,lines:r.lines.map(l=>({pid:l.pid,qty:l.qty})),delivery:r.delivery,discount:r.discount,notes:r.notes});closeModal();go('pos')},
+  editDraft:el=>{const r=byId(el.dataset.id);ui.draft=Object.assign(newDraft(),{editId:r.id,clientId:r.clientId,eventName:r.eventName,eventType:r.eventType,source:r.source||'Téléphone',start:r.start<TODAY?TODAY:r.start,end:r.end<TODAY?TODAY:r.end,lines:r.lines.map(l=>({pid:l.pid,qty:l.qty})),delivery:r.delivery,discount:r.discount,notes:r.notes,delivSlot:r.delivSlot||'',pickSlot:r.pickSlot||''});closeModal();go('pos')},
   rentTo:el=>{ui.draft=Object.assign(newDraft(),{clientId:el.dataset.id});closeModal();go('pos')},
   pcat:el=>{ui.draft.cat=el.dataset.v;drawCats();drawTiles()},
   addLine:el=>{const d=ui.draft;const cur=(d.lines.find(l=>l.pid===el.dataset.id)||{}).qty||0;setQty(el.dataset.id,cur+1)},
@@ -1588,7 +1622,7 @@ const ACT={
   rmLine:el=>setQty(el.dataset.id,0),
   quickClient:()=>clientForm(null,id=>{ui.draft.clientId=id}),
   clearDraft:()=>{ui.draft=newDraft();render()},
-  confirmDraft:()=>commitDraft('Confirmée'),holdDraft:()=>commitDraft('Pré-réservation'),saveQuote:()=>commitDraft('Devis'),
+  sendDoc:el=>sendDocForm(el.dataset.id,el.dataset.kind),fillPay:()=>{const c=draftCalc();ui.draft.payAmount=c.t;ui.draft.cautionPay=c.caution;drawCart()},confirmDraft:()=>commitDraft('Confirmée'),holdDraft:()=>commitDraft('Pré-réservation'),saveQuote:()=>commitDraft('Devis'),
   slow:()=>{ui.slow=!ui.slow;ui.slimit=60;render()},moreStock:()=>{ui.slimit+=120;$('#stable').innerHTML=stockTable(filterProducts())},
   adjust:el=>adjustForm(el.dataset.id),stateForm:el=>stateForm(el.dataset.id),newProduct:()=>productForm(null),editProduct:el=>productForm(el.dataset.id),
   csvStock:()=>csvModal('Export du stock',csvStockRows()),csvRentals:()=>csvModal('Export des commandes',csvRentalRows()),csvCash:()=>csvModal('Caisse du '+fd(ui.cashDate,1),csvCashRows()),
@@ -1622,7 +1656,7 @@ const INP={
       d.lines.forEach(l=>{const a=avail(prod(l.pid),d.start,d.end,d.editId);if(l.qty>a){toast(`« ${prod(l.pid).name} » : quantité réduite à ${Math.max(0,a)} pour ces dates.`,1);l.qty=Math.max(0,a)}});
       d.lines=d.lines.filter(l=>l.qty>0);drawTiles();drawCart();return}
     d[k]=el.type==='number'?num(el.value):el.value;
-    if(['delivery','discount','payAmount','cautionPay'].includes(k))$('#ctot').innerHTML=totalsHtml();
+    if(['delivery','discount','payAmount','cautionPay'].includes(k)){$('#ctot').innerHTML=totalsHtml();const c=draftCalc();if($('#h_pay'))$('#h_pay').textContent=F(c.t);if($('#h_cau'))$('#h_cau').textContent=F(c.caution)}
   }
 };
 document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el)return;const f=ACT[el.dataset.act];if(f)f(el,e)});
@@ -1639,7 +1673,7 @@ document.addEventListener('submit',e=>{
   if(!ACT_ROLES.team.includes(me().role)){toast('Réservé à l’administrateur.',1);return}
   const d=new FormData(e.target),rate=num(d.get('rate')),h=Math.round(num(d.get('hold')));
   if(rate<0||rate>100){toast('Le taux doit être compris entre 0 et 100 %.',1);return}
-  S.settings.depositRate=rate;S.settings.holdMaxHours=Math.min(3,Math.max(1,h));save();render();toast('Règles enregistrées.');
+  S.settings.conditions=String(d.get('cond')||'').trim()||DEFAULT_CONDITIONS.join('\n');S.settings.depositRate=rate;S.settings.holdMaxHours=Math.min(3,Math.max(1,h));save();render();toast('Règles enregistrées.');
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();ACT.closeNav()}});
 
