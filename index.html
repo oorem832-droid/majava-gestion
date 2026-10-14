@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#FAF5F6">
 <title>MAJAVA — Gestion de location</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
@@ -414,15 +416,20 @@ const NAV=[
  {id:'cash',label:'Caisse du jour',ic:'wallet',roles:['admin','commercial','accountant']},
  {id:'deposits',label:'Cautions',ic:'lock',roles:['admin','commercial','accountant']},
  {id:'moves',label:'Mouvements de stock',ic:'swap',roles:['admin','stock','maint']},
- {id:'rebut',label:'Rebut',ic:'alert',roles:['admin','stock','maint']},
+ {id:'rebut',label:'Rebut',ic:'alert',roles:['admin','stock','maint','commercial']},
  {id:'clients',label:'Clients',ic:'users',roles:['admin','commercial']},
  {id:'suppliers',label:'Fournisseurs & achats',ic:'truck',roles:['admin','stock']},
  {id:'reports',label:'Rapports',ic:'chart',roles:['admin','accountant']},
  {id:'team',label:'Équipe & accès',ic:'shield',roles:['admin']},
  {id:'settings',label:'Règles & paramètres',ic:'gear',roles:['admin']}
 ];
-const ACT_ROLES={rent:['admin','commercial'],pay:['admin','commercial'],prepare:['admin','stock'],deliver:['admin','driver'],ret:['admin','maint'],stock:['admin','stock'],stateEdit:['admin','stock','maint'],deposit:['admin','commercial'],regul:['admin','commercial','stock'],money:['admin','commercial','accountant'],purchase:['admin','stock'],clients:['admin','commercial'],team:['admin']};
+const ACT_ROLES={rent:['admin','commercial'],pay:['admin','commercial'],prepare:['admin','stock'],deliver:['admin','driver'],
+ ret:['admin','stock','maint'],settle:['admin','commercial'],retDate:['admin','commercial','stock'],waive:['admin','commercial'],
+ stock:['admin','stock'],create:['admin','stock','commercial'],transform:['admin','maint'],qty:['admin','stock','commercial'],advise:['admin','commercial','stock','maint'],restock:['admin','stock'],stateEdit:['admin','stock','maint'],signal:['admin','commercial','maint'],
+ deposit:['admin','commercial'],regul:['admin','commercial','stock'],money:['admin','commercial','accountant'],purchase:['admin','stock'],clients:['admin','commercial'],team:['admin']};
 const STATUSES=['Devis','Pré-réservation','Confirmée','Sortie','Retournée','Expirée','Annulée'];
+const SLOTS=['08h – 10h','10h – 12h','12h – 14h','14h – 16h','16h – 18h','18h – 20h'];
+const DEFAULT_CONDITIONS=['Réservation et paiement : la commande est confirmée, et le matériel ainsi que les créneaux de livraison et de récupération sont réservés, uniquement après paiement intégral de la location (articles et transport) et de la caution. MAJAVA ne prend pas d’avance.','Caution : 30 % du prix de location du matériel (transport non inclus). Elle est restituée à la récupération, après contrôle du matériel, déduction faite de la casse, des pertes et des jours de retard.','Livraison et récupération : aux créneaux horaires convenus. Le client, ou son représentant, est présent pour la réception et la remise du matériel.','Retard : chaque jour supplémentaire de conservation du matériel est facturé au tarif journalier de la commande.','Casse et perte : le matériel manquant ou détérioré est facturé au prix de remplacement.','Responsabilité : le matériel est sous la responsabilité du client de la livraison jusqu’à la récupération.'];
 const SOURCES=['Plateforme (demande en ligne)','Téléphone','WhatsApp','E-mail','Showroom'];
 const MOVE_TYPES=['Entrée','Sortie','Retour','Perte','Ajustement','État','Rebut'];
 
@@ -441,8 +448,8 @@ const TBL={
   from:r=>({id:r.id,name:r.name,type:r.client_type,phone:nz(r.phone),email:nz(r.email),address:nz(r.address),notes:nz(r.notes)})},
  suppliers:{to:s=>({id:s.id,name:s.name,contact:s.contact,phone:s.phone,email:s.email,category:s.category,city:s.city,notes:s.notes}),
   from:r=>({id:r.id,name:r.name,contact:nz(r.contact),phone:nz(r.phone),email:nz(r.email),category:nz(r.category),city:nz(r.city),notes:nz(r.notes)})},
- rentals:{to:r=>({id:r.id,rental_no:r.no,client_id:r.clientId,event_name:r.eventName,event_type:r.eventType,source:r.source||null,start_date:r.start,end_date:r.end,status:r.status,lines:r.lines,delivery:r.delivery,discount:r.discount,fees:r.fees||0,payments:r.payments,lost:r.lost||{},incidents:r.incidents||[],notes:r.notes||'',created:r.created||null,created_by:nn(r.by),hold_until:nn(r.holdUntil),hold_by:nn(r.holdBy),expired_at:nn(r.expiredAt),prepared:!!r.prepared,prepared_at:nn(r.preparedAt),prepared_by:nn(r.preparedBy),out_at:nn(r.outAt),out_by:nn(r.outBy),returned_at:nn(r.returnedAt),returned_by:nn(r.returnedBy),regul:!!r.regul,cancelled_at:nn(r.cancelledAt),cancelled_by:nn(r.cancelledBy),deposit:r.deposit||0,deposit_state:nn(r.depositState),deposit_retained:r.depositRetained||0,deposit_closed_on:nn(r.depositClosedOn),deposit_back:r.depositBack||0}),
-  from:r=>({id:r.id,no:r.rental_no,clientId:r.client_id,eventName:r.event_name,eventType:nz(r.event_type),source:nz(r.source),start:r.start_date,end:r.end_date,status:r.status,lines:r.lines||[],delivery:+r.delivery,discount:+r.discount,fees:+r.fees,payments:r.payments||[],lost:r.lost||{},incidents:r.incidents||[],notes:nz(r.notes),created:nz(r.created),by:nz(r.created_by),holdUntil:r.hold_until||null,holdBy:nz(r.hold_by),expiredAt:r.expired_at||null,prepared:!!r.prepared,preparedAt:r.prepared_at||null,preparedBy:r.prepared_by||null,outAt:r.out_at||null,outBy:r.out_by||null,returnedAt:r.returned_at||null,returnedBy:r.returned_by||null,regul:!!r.regul,cancelledAt:r.cancelled_at||null,cancelledBy:r.cancelled_by||null,deposit:+r.deposit,depositState:r.deposit_state||null,depositRetained:+r.deposit_retained,depositClosedOn:r.deposit_closed_on||null,depositBack:+r.deposit_back})},
+ rentals:{to:r=>({id:r.id,rental_no:r.no,client_id:r.clientId,event_name:r.eventName,event_type:r.eventType,source:r.source||null,start_date:r.start,end_date:r.end,status:r.status,lines:r.lines,delivery:r.delivery,discount:r.discount,fees:r.fees||0,payments:r.payments,lost:r.lost||{},incidents:r.incidents||[],notes:r.notes||'',created:r.created||null,created_by:nn(r.by),hold_until:nn(r.holdUntil),hold_by:nn(r.holdBy),expired_at:nn(r.expiredAt),prepared:!!r.prepared,prepared_at:nn(r.preparedAt),prepared_by:nn(r.preparedBy),out_at:nn(r.outAt),out_by:nn(r.outBy),returned_at:nn(r.returnedAt),returned_by:nn(r.returnedBy),regul:!!r.regul,cancelled_at:nn(r.cancelledAt),cancelled_by:nn(r.cancelledBy),deposit:r.deposit||0,deposit_state:nn(r.depositState),deposit_retained:r.depositRetained||0,deposit_closed_on:nn(r.depositClosedOn),deposit_back:r.depositBack||0,return_date:nn(r.returnDate),late_days:r.lateDays||0,late_fee:r.lateFee||0,settled:!!r.settled,settled_at:nn(r.settledAt),settled_by:nn(r.settledBy),exception_note:nn(r.exceptionNote),exception_by:nn(r.exceptionBy),exception_at:nn(r.exceptionAt)}),
+  from:r=>({id:r.id,no:r.rental_no,clientId:r.client_id,eventName:r.event_name,eventType:nz(r.event_type),source:nz(r.source),start:r.start_date,end:r.end_date,status:r.status,lines:r.lines||[],delivery:+r.delivery,discount:+r.discount,fees:+r.fees,payments:r.payments||[],lost:r.lost||{},incidents:r.incidents||[],notes:nz(r.notes),created:nz(r.created),by:nz(r.created_by),holdUntil:r.hold_until||null,holdBy:nz(r.hold_by),expiredAt:r.expired_at||null,prepared:!!r.prepared,preparedAt:r.prepared_at||null,preparedBy:r.prepared_by||null,outAt:r.out_at||null,outBy:r.out_by||null,returnedAt:r.returned_at||null,returnedBy:r.returned_by||null,regul:!!r.regul,cancelledAt:r.cancelled_at||null,cancelledBy:r.cancelled_by||null,deposit:+r.deposit,depositState:r.deposit_state||null,depositRetained:+r.deposit_retained,depositClosedOn:r.deposit_closed_on||null,depositBack:+r.deposit_back,returnDate:r.return_date||null,lateDays:+r.late_days||0,lateFee:+r.late_fee||0,settled:!!r.settled,settledAt:r.settled_at||null,settledBy:r.settled_by||null,exceptionNote:r.exception_note||null,exceptionBy:r.exception_by||null,exceptionAt:r.exception_at||null})},
  purchases:{to:p=>({id:p.id,po_no:p.no,supplier_id:p.supplierId,order_date:p.date,status:p.status,lines:p.lines,created_by:p.by||null,received_on:p.receivedOn||null}),
   from:r=>({id:r.id,no:r.po_no,supplierId:r.supplier_id,date:r.order_date,status:r.status,lines:r.lines||[],by:nz(r.created_by),receivedOn:r.received_on||undefined})},
  moves:{to:m=>({id:m.id,move_date:m.date,at:m.at||null,seq:m.seq,product_id:m.pid,move_type:m.type,qty:m.qty,ref:m.ref||'',note:m.note||'',created_by:m.by||null}),
@@ -602,12 +609,14 @@ const live=r=>r.status==='Confirmée'||r.status==='Sortie'||r.status==='Retourn�
 const nDays=r=>Math.max(1,diff(r.start,r.end)+1);
 const subtotal=r=>r.lines.reduce((a,l)=>a+l.qty*l.price,0)*nDays(r);
 const total=r=>subtotal(r)+(+r.delivery||0)+(+r.fees||0)-(+r.discount||0);
+const dailyRate=r=>subtotal(r)/nDays(r);
+const lateDaysOf=(r,d)=>Math.max(0,diff(r.end,d||r.returnDate||TODAY));
 const paid=r=>r.payments.filter(p=>p.kind!=='caution').reduce((a,p)=>a+p.amount,0);
 const cautionPaid=r=>r.payments.filter(p=>p.kind==='caution').reduce((a,p)=>a+p.amount,0);
 const balance=r=>total(r)-paid(r);
 const baseAmount=r=>subtotal(r)+(+r.delivery||0)-(+r.discount||0);
-const depFromBase=b=>S.settings.depositRate>0&&b>0?Math.max(500,Math.round(S.settings.depositRate/100*b/500)*500):0;
-const depositFor=r=>depFromBase(baseAmount(r));
+const depFromBase=b=>S.settings.depositRate>0&&b>0?Math.round(S.settings.depositRate/100*b):0;
+const depositFor=r=>depFromBase(subtotal(r)); /* 30 % du prix du matériel, transport non inclus */
 const sl=s=>s==='Sortie'?'En cours':s;
 const STAT={Devis:'b-mute','Pré-réservation':'b-warn','Confirmée':'b-info',Sortie:'b-plum','Retournée':'b-ok','Expirée':'b-mute','Annulée':'b-bad'};
 const badge=s=>`<span class="badge ${STAT[s]||'b-mute'}">${esc(sl(s))}</span>`;
@@ -665,6 +674,24 @@ function moveBalances(){
     for(let i=l.length-1;i>=0;i--){out[l[i].id]=cur;cur-=moveDelta(l[i])}
   });
   return out;
+}
+
+/* demandes d'avis (ex. quelle transformation pour une pièce abîmée) : l'entretien demande, le commercial ou un collaborateur répond */
+const isAdvice=m=>m.type==='État'&&/^Avis/.test(m.note||'');
+function pendingAdvice(){
+  return S.moves.filter(m=>isAdvice(m)&&/^Avis demandé/.test(m.note)).filter(q=>!S.moves.some(a=>isAdvice(a)&&/^Avis réponse/.test(a.note)&&a.note.includes('['+q.id+']'))).map(q=>({m:q,p:prod(q.pid)})).filter(x=>x.p).sort((a,b)=>(b.m.at||b.m.date).localeCompare(a.m.at||a.m.date));
+}
+function adviceAnswers(id){return S.moves.filter(a=>isAdvice(a)&&/^Avis réponse/.test(a.note)&&a.note.includes('['+id+']'))}
+/* signalements (entretien ou commercial) : la remise en stock ou le rebut reste décidé par le stock */
+const isSignal=m=>m.type==='État'&&/^Signalement/.test(m.note||'');
+function pendingSignals(){
+  const ord=(a,b)=>(a.at||a.date).localeCompare(b.at||b.date)||a.seq-b.seq;
+  const out=[];
+  S.moves.filter(isSignal).forEach(s=>{
+    const handled=S.moves.some(m=>m.pid===s.pid&&!isSignal(m)&&ord(m,s)>0&&(m.type==='Rebut'||/→ Disponible/.test(m.note||'')));
+    if(!handled)out.push({m:s,p:prod(s.pid),kind:/rebut/i.test(s.note)?'rebut':'restock',q:+((s.note.match(/×(\d+)/)||[])[1]||0)});
+  });
+  return out.filter(x=>x.p).sort((a,b)=>ord(b.m,a.m));
 }
 
 /* ============ navigation ============ */
@@ -736,8 +763,11 @@ function vDash(){
   toDeliver.forEach(r=>T(['admin','driver'],{k:'r',id:r.id,c:'b-plum',i:'truck',t:'À livrer : '+r.eventName,s:'Préparée · événement le '+fd(r.start)}));
   S.rentals.filter(r=>r.status==='Confirmée'&&r.start<=addD(TODAY,7)&&balance(r)>0).forEach(r=>T(['admin','commercial'],{k:'r',id:r.id,c:'b-warn',i:'wallet',t:'Solde à encaisser : '+F(balance(r)),s:r.eventName+' — '+fd(r.start)}));
   S.rentals.filter(r=>r.status==='Confirmée'&&r.deposit&&cautionPaid(r)<r.deposit&&r.start<=addD(TODAY,7)).forEach(r=>T(['admin','commercial'],{k:'r',id:r.id,c:'b-warn',i:'lock',t:'Caution à encaisser : '+F(r.deposit-cautionPaid(r)),s:r.eventName+' — '+fd(r.start)}));
-  toReturn.filter(r=>!overdue(r)).forEach(r=>T(['admin','maint','driver'],{k:'r',id:r.id,c:'b-warn',i:'swap',t:'Retour attendu : '+r.eventName,s:'Fin le '+fd(r.end)}));
-  S.rentals.filter(r=>r.status==='Retournée'&&r.deposit&&!r.depositClosedOn).forEach(r=>T(['admin','commercial','accountant'],{k:'r',id:r.id,c:'b-info',i:'lock',t:'Caution à clôturer : '+F(r.deposit-(r.depositRetained||0))+' à restituer',s:r.eventName+' · '+r.depositState}));
+  toReturn.filter(r=>!overdue(r)).forEach(r=>T(['admin','stock','maint','driver'],{k:'r',id:r.id,c:'b-warn',i:'swap',t:'Retour attendu : '+r.eventName,s:'Fin le '+fd(r.end)}));
+  S.rentals.filter(r=>r.status==='Retournée'&&!r.settled).forEach(r=>T(['admin','commercial'],{k:'r',id:r.id,c:'b-warn',i:'wallet',t:'Retour à régler : '+r.eventName,s:'Casse, retard et caution à calculer'+(r.returnDate&&r.returnDate>r.end?' · '+diff(r.end,r.returnDate)+' j de retard':'')}));
+  pendingAdvice().forEach(x=>T(['admin','commercial','stock'],{k:'p',id:x.p.id,c:'b-info',i:'alert',t:'Avis demandé : '+x.p.name,s:'Par '+staffName(x.m.by)+' · '+fdt(x.m.at||x.m.date)}));
+  pendingSignals().forEach(x=>T(['admin','stock'],{k:'p',id:x.p.id,c:x.kind==='rebut'?'b-bad':'b-info',i:'box',t:(x.kind==='rebut'?'À mettre au rebut : ':'À remettre en stock : ')+x.p.name,s:'Signalé par '+staffName(x.m.by)+' · '+fdt(x.m.at||x.m.date)}));
+  S.rentals.filter(r=>r.status==='Retournée'&&r.settled&&r.deposit&&!r.depositClosedOn).forEach(r=>T(['admin','commercial','accountant'],{k:'r',id:r.id,c:'b-info',i:'lock',t:'Caution à clôturer : '+F(r.deposit-(r.depositRetained||0))+' à restituer',s:r.eventName+' · '+r.depositState}));
   low.slice(0,4).forEach(p=>T(['admin','stock'],{k:'p',id:p.id,c:'b-warn',i:'box',t:'Stock bas : '+p.name,s:'Disponible aujourd’hui : '+avail(p,TODAY,TODAY)+' (seuil '+p.min+')'}));
   const cats={};vr.forEach(r=>r.lines.forEach(l=>{const p=prod(l.pid);if(p)cats[p.cat]=(cats[p.cat]||0)+l.qty*l.price*nDays(r)}));
   const kp=money?[
@@ -804,7 +834,9 @@ function stepsHtml(r){
   if(adv&&live(r))e.push(['Avance enregistrée',adv.at||adv.date,staffName(adv.by)]);
   if(r.prepared)e.push(['Préparée et vérifiée',r.preparedAt,staffName(r.preparedBy)]);
   if(r.outAt)e.push(['Livrée (sortie du stock)',r.outAt,staffName(r.outBy)]);
-  if(r.returnedAt)e.push(['Retour enregistré',r.returnedAt,staffName(r.returnedBy)]);
+  if(r.exceptionNote)e.push(['Dérogation de paiement : '+r.exceptionNote,r.exceptionAt,staffName(r.exceptionBy)]);
+  if(r.returnedAt)e.push(['Retour reçu (comptage et état)'+(r.returnDate?' · rapporté le '+fd(r.returnDate,1):''),r.returnedAt,staffName(r.returnedBy)]);
+  if(r.settledAt)e.push(['Retour réglé (casse, retard, caution)',r.settledAt,staffName(r.settledBy)]);
   if(r.depositClosedOn)e.push(['Caution clôturée',r.depositClosedOn,'']);
   return `<ul class="steps">${e.map(x=>`<li><b>${esc(x[0])}</b><span>${x[1]?fdt(x[1]):''}${x[2]?' · '+esc(x[2]):''}</span></li>`).join('')}</ul>`;
 }
@@ -823,18 +855,25 @@ function showRental(id){
   if(r.status==='Pré-réservation'&&can('rent'))b.push(`<button class="btn primary" data-act="advanceForm" data-id="${r.id}">${ic('check',16)} Enregistrer l’avance et confirmer</button>`);
   if(r.status==='Confirmée'&&!r.prepared&&can('prepare'))b.push(`<button class="btn primary" data-act="prepForm" data-id="${r.id}">${ic('box',16)} Préparer et vérifier le matériel</button>`);
   if(r.status==='Confirmée'&&r.prepared&&can('deliver'))b.push(`<button class="btn primary" data-act="deliver" data-id="${r.id}">${ic('truck',16)} Valider la livraison (sortie)</button>`);
-  if(r.status==='Sortie'&&can('ret'))b.push(`<button class="btn primary" data-act="showReturn" data-id="${r.id}">${ic('swap',16)} Enregistrer le retour</button>`);
+  if(r.status==='Sortie'&&can('ret'))b.push(`<button class="btn primary" data-act="showReturn" data-id="${r.id}">${ic('swap',16)} Réception du retour (comptage et état)</button>`);
+  if(r.status==='Sortie'&&can('retDate'))b.push(`<button class="btn" data-act="noteReturnDate" data-id="${r.id}">${ic('cal',16)} Noter la date de dépôt par le client</button>`);
+  if(r.status==='Retournée'&&!r.settled&&can('settle'))b.push(`<button class="btn primary" data-act="settleForm" data-id="${r.id}">${ic('wallet',16)} Régler le retour (retard, casse, caution)</button>`);
+  if(r.status==='Confirmée'&&!r.exceptionNote&&can('waive')&&(balance(r)>0||(r.deposit||0)>cautionPaid(r)))b.push(`<button class="btn" data-act="waiveForm" data-id="${r.id}">${ic('check',16)} Autoriser la livraison malgré un paiement incomplet</button>`);
   if(overdue(r)&&!r.regul&&can('regul'))b.push(`<button class="btn" data-act="regul" data-id="${r.id}">Mettre en attente de régularisation</button>`);
+  if(r.status==='Retournée'&&r.settled&&r.fees>0&&balance(r)>0&&can('pay'))b.push(`<button class="btn primary" data-act="addPay" data-id="${r.id}" data-kind="location">${ic('wallet',16)} Encaisser le complément (${F(balance(r))})</button>`);
   if((r.status==='Confirmée'||r.status==='Sortie')&&balance(r)>0&&can('pay'))b.push(`<button class="btn" data-act="addPay" data-id="${r.id}" data-kind="location">${ic('wallet',16)} Encaisser un paiement</button>`);
   if((r.status==='Confirmée'||r.status==='Sortie')&&r.deposit&&cautionPaid(r)<r.deposit&&can('deposit'))b.push(`<button class="btn" data-act="addPay" data-id="${r.id}" data-kind="caution">${ic('lock',16)} Encaisser la caution (${F(r.deposit-cautionPaid(r))})</button>`);
-  if(r.status==='Retournée'&&r.deposit&&!r.depositClosedOn&&can('deposit'))b.push(`<button class="btn primary" data-act="closeDep" data-id="${r.id}">${ic('lock',16)} Clôturer la caution (restituer ${F(r.deposit-(r.depositRetained||0))})</button>`);
-  if(live(r)&&r.status!=='Retournée'||r.status==='Retournée')b.push(`<button class="btn" data-act="printDoc" data-id="${r.id}" data-kind="facture">${ic('print',16)} Facture</button>`);
-  if(needAdv)b.push(`<button class="btn" data-act="printDoc" data-id="${r.id}" data-kind="devis">${ic('print',16)} Devis</button>`);
+  if(r.status==='Retournée'&&r.settled&&r.fees>0&&can('money'))b.push(`<button class="btn" data-act="printDoc" data-id="${r.id}" data-kind="fc">${ic('print',16)} Facture complémentaire (dommages)</button>`);
+  if(r.status==='Retournée'&&r.settled&&r.deposit&&!r.depositClosedOn&&can('deposit'))b.push(`<button class="btn primary" data-act="closeDep" data-id="${r.id}">${ic('lock',16)} Clôturer la caution (restituer ${F(r.deposit-(r.depositRetained||0))})</button>`);
+  if(can('money')&&(live(r)&&r.status!=='Retournée'||r.status==='Retournée'))b.push(`<button class="btn" data-act="printDoc" data-id="${r.id}" data-kind="facture">${ic('print',16)} Facture</button>`);
+  if(needAdv&&can('money'))b.push(`<button class="btn" data-act="printDoc" data-id="${r.id}" data-kind="devis">${ic('print',16)} Devis</button>`);
   if(live(r))b.push(`<button class="btn" data-act="printDoc" data-id="${r.id}" data-kind="bl">${ic('print',16)} Bon de livraison</button>`);
+  if(r.status==='Sortie'||r.status==='Retournée')b.push(`<button class="btn" data-act="printDoc" data-id="${r.id}" data-kind="br">${ic('print',16)} Bon de récupération</button>`);
+  if(r.status==='Retournée'&&r.deposit&&can('money'))b.push(`<button class="btn" data-act="printDoc" data-id="${r.id}" data-kind="fr">${ic('print',16)} Fiche de restitution de caution</button>`);
   if((needAdv||r.status==='Confirmée')&&can('rent'))b.push(`<button class="btn danger" data-act="cancelRental" data-id="${r.id}">${r.status==='Pré-réservation'?'Libérer le stock (annuler)':'Annuler la commande'}</button>`);
   const warn=overdue(r)?`<div class="warn-box">Matériel non restitué depuis le ${fd(r.end)}${r.regul?' — en attente de régularisation':''}.</div>`:r.status==='Pré-réservation'?`<div class="warn-box">Stock bloqué temporairement : expire dans ${holdLeft(r)}. Sans avance enregistrée, la commande expire et les articles sont libérés (aucune pénalité).</div>`:(r.status==='Confirmée'&&!r.prepared)?`<div class="hint" style="margin:6px 0">Étape suivante : préparation par le gestionnaire de stock. Aucune livraison sans préparation validée, caution enregistrée et réservation confirmée.</div>`:'';
   const inc=r.incidents.length?`<h3 style="margin:16px 0 6px">Pertes et casses signalées</h3><div class="scroll"><table><tbody>${r.incidents.map(x=>`<tr><td>${fdt(x.at)}</td><td>${esc(x.type)}</td><td>${esc((prod(x.pid)||{}).name)}</td><td class="num">${x.qty}</td><td>${esc(staffName(x.by))}</td></tr>`).join('')}</tbody></table></div>`:'';
-  const dep=r.deposit?`<div class="kv" style="margin-top:14px"><div><span>Caution (${S.settings.depositRate} %)</span><b>${F(r.deposit)}</b><span>${depBadge(r)}</span></div><div><span>Encaissée</span><b>${F(cautionPaid(r))}</b></div>${r.status==='Retournée'?`<div><span>Retenue</span><b class="${r.depositRetained?'neg':''}">${F(r.depositRetained||0)}</b></div><div><span>À restituer au client</span><b>${F(r.deposit-(r.depositRetained||0))}</b></div>`:''}</div>`:'';
+  const dep=r.deposit?`<div class="kv" style="margin-top:14px"><div><span>Caution (${S.settings.depositRate} %)</span><b>${F(r.deposit)}</b><span>${depBadge(r)}</span></div><div><span>Encaissée</span><b>${F(cautionPaid(r))}</b></div>${r.status==='Retournée'?`<div><span>Retenue</span><b class="${r.depositRetained?'neg':''}">${F(r.depositRetained||0)}</b></div><div><span>Reliquat à restituer au client</span><b>${F(Math.max(0,cautionPaid(r)-(r.depositRetained||0)))}</b></div>${r.settled&&r.fees>0?`<div><span>Complément à payer par le client (dommages au-delà de la caution)</span><b class="neg">${F(r.fees)}</b><span>${balance(r)>0?'<span class="badge b-warn">À encaisser : '+F(balance(r))+'</span>':'<span class="badge b-ok">Payé</span>'}</span></div>`:''}${r.settled&&r.lateFee?`<div><span>Retard de restitution</span><b>${r.lateDays} j · ${F(r.lateFee)}</b></div>`:''}`:''}</div>`:'';
   openModal(r.eventName,`
    <div class="kv"><div><span>N°</span><b>${esc(r.no)}</b></div><div><span>Client</span><b>${esc(c.name||'—')}</b>${c.phone?`<span>${esc(c.phone)}</span>`:''}</div><div><span>Dates</span><b>${fd(r.start,1)}${r.end!==r.start?' → '+fd(r.end,1):''}</b><span>${nd} jour${nd>1?'s':''} · ${esc(r.eventType)}</span></div><div><span>Origine</span><b>${esc(r.source||'—')}</b></div></div>
    ${warn}
@@ -865,7 +904,7 @@ function advanceForm(id){
   formModal({title:'Enregistrer l’avance : '+r.eventName,narrow:true,fields:[
     {k:'amount',label:'Montant de l’avance (F)',type:'number',min:1,required:true,full:true,value:Math.round(baseAmount(r)*0.5/500)*500,hint:'Total de la commande : '+F(baseAmount(r))+'. Cet enregistrement vaut preuve d’engagement financier.'},
     {k:'method',label:'Moyen de paiement',type:'select',options:PAY,full:true},
-    {k:'caut',label:'Caution encaissée maintenant (F)',type:'number',min:0,value:0,full:true,hint:'Caution obligatoire : '+F(dep)+' ('+S.settings.depositRate+' %). Elle doit être encaissée avant la livraison.'}],
+    {k:'caut',label:'Caution encaissée maintenant (F)',type:'number',min:0,value:0,full:true,hint:'Caution obligatoire : '+F(dep)+' ('+S.settings.depositRate+' %). Elle doit être encaissée avant la livraison, avec le solde de la facture (sauf dérogation).'}],
    submit:'Confirmer la réservation',onSubmit:v=>{
     if(v.amount<=0){toast('Une avance est nécessaire pour confirmer.',1);return false}
     if(r.status==='Devis'||r.status==='Expirée'){const bad=checkAvail(r.lines,r.start,r.end,r.id);if(bad.length){toast('Stock insuffisant : '+bad[0],1);return false}}
@@ -890,49 +929,96 @@ function deliver(id){
   const r=S.rentals.find(x=>x.id===id);
   if(r.status!=='Confirmée'){toast('Aucun article ne peut être livré sans réservation confirmée.',1);return}
   if(!r.prepared){toast('Le matériel n’est pas encore préparé.',1);return}
-  if(r.deposit&&cautionPaid(r)<r.deposit){toast('Caution non encaissée : '+F(r.deposit-cautionPaid(r))+' manquants.',1);return}
+  const shF=Math.max(0,balance(r)),shC=Math.max(0,(r.deposit||0)-cautionPaid(r));
+  if((shF>0||shC>0)&&!r.exceptionNote){toast(can('money')?'Paiement total exigé avant la livraison (facture + caution) : '+F(shF+shC)+' restent à encaisser. Le commercial peut autoriser une dérogation.':'Livraison bloquée : la commande n’est pas payée en totalité. Le commercial peut autoriser une dérogation.',1);return}
   if(r.start>addD(TODAY,1)){toast('La livraison n’est possible que la veille ou le jour de l’événement.',1);return}
   const bad=r.lines.filter(l=>l.qty>usable(prod(l.pid)));if(bad.length){toast('Article indisponible (entretien ou endommagé) : '+prod(bad[0].pid).name,1);return}
   confirmDialog('Valider la livraison ?','La date et l’heure de sortie seront enregistrées à votre nom et les articles passeront à « Loué ».','Valider la livraison',()=>{
     r.status='Sortie';r.outAt=nowLocal();r.outBy=S.me;r.lines.forEach(l=>addMove(l.pid,'Sortie',-l.qty,r.no,'Livraison'));save();render();toast('Livraison validée.');showRental(id);
   });
 }
+function damageCost(r){return r.incidents.filter(x=>x.type==='Perte'||x.type==='Endommagé').reduce((a,x)=>a+x.qty*repl(prod(x.pid)||{price:0}),0)}
+/* Volet 1 — réception du matériel : comptage et état, par le stock ou l’entretien (aucun montant) */
 function showReturn(id){
   const r=S.rentals.find(x=>x.id===id);if(!r)return;
-  const rows=r.lines.map(l=>{const p=prod(l.pid);return `<tr><td>${esc(p.name)}<span class="sub">Remplacement : ${F(repl(p))} / pièce</span></td><td class="num">${l.qty}</td>
-   <td class="num"><input type="number" min="0" max="${l.qty}" value="0" name="lost_${l.pid}" data-in="lost" style="width:70px;text-align:right" aria-label="Manquants : ${esc(p.name)}"></td>
-   <td class="num"><input type="number" min="0" max="${l.qty}" value="0" name="dmg_${l.pid}" data-in="lost" style="width:70px;text-align:right" aria-label="Endommagés : ${esc(p.name)}"></td>
-   <td class="num"><input type="number" min="0" max="${l.qty}" value="0" name="mnt_${l.pid}" style="width:70px;text-align:right" aria-label="À nettoyer ou réparer : ${esc(p.name)}"></td></tr>`}).join('');
-  openModal('Retour du matériel',`<p class="hint" style="margin-top:0">${esc(r.eventName)} — indiquez seulement les écarts. Le reste retourne en stock disponible. Les pièces <b>endommagées</b> et <b>en entretien</b> sont exclues des disponibilités jusqu’à changement d’état manuel.</p><form id="rform" data-cp="${cautionPaid(r)}"><div class="scroll"><table><thead><tr><th>Article</th><th class="num">Sorti</th><th class="num">Manquant</th><th class="num">Endommagé</th><th class="num">À entretenir</th></tr></thead><tbody>${rows}</tbody></table></div>
-   <div class="form" style="margin-top:14px"><div class="field"><label for="rret">Retenue sur la caution (F)</label><input id="rret" name="ret" type="number" min="0" value="0"><div class="hint">Caution encaissée : ${F(cautionPaid(r))}. Calculé au prix de remplacement, modifiable selon les règles internes.</div></div><div class="field"><label for="rfees">Frais facturés en plus de la caution (F)</label><input id="rfees" name="fees" type="number" min="0" value="0"><div class="hint">Montant des dégâts au-delà de la caution.</div></div>
-   <div class="modal-foot"><button type="button" class="btn ghost" data-act="closeModal">Annuler</button><button class="btn primary" type="submit">Valider le retour</button></div></div></form>`,{focus:false});
+  const m=can('money');
+  const rows=r.lines.map(l=>{const p=prod(l.pid);return `<tr><td>${esc(p.name)}${m?`<span class="sub">Remplacement : ${F(repl(p))} / pièce</span>`:''}</td><td class="num">${l.qty}</td>
+   <td class="num"><input type="number" min="0" max="${l.qty}" value="0" name="lost_${l.pid}" style="width:70px;text-align:right" aria-label="Manquants : ${esc(p.name)}"></td>
+   <td class="num"><input type="number" min="0" max="${l.qty}" value="0" name="dmg_${l.pid}" style="width:70px;text-align:right" aria-label="Endommagés : ${esc(p.name)}"></td>
+   <td class="num"><input type="number" min="0" max="${l.qty}" value="0" name="mnt_${l.pid}" style="width:70px;text-align:right" aria-label="À nettoyer ou réparer : ${esc(p.name)}"></td><td><input type="text" name="cm_${l.pid}" placeholder="RAS" style="width:150px" aria-label="Commentaire : ${esc(p.name)}"></td></tr>`}).join('');
+  const d0=r.returnDate||TODAY;
+  openModal('Réception du retour',`<p class="hint" style="margin-top:0">${esc(r.eventName)} — indiquez seulement les écarts. Le reste retourne en stock disponible. Les pièces <b>endommagées</b> et <b>en entretien</b> sont exclues des disponibilités jusqu’à la remise en stock par le service stock. <b>Le commercial règle ensuite</b> les conséquences financières (casse, retard, caution).</p><form id="rform"><div class="scroll"><table><thead><tr><th>Article</th><th class="num">Sorti</th><th class="num">Manquants</th><th class="num">Endommagés</th><th class="num">À nettoyer ou réparer</th><th>Commentaire</th></tr></thead><tbody>${rows}</tbody></table></div>
+   <div class="form" style="margin-top:14px"><div class="field"><label for="rdate">Date réelle de retour</label><input id="rdate" name="rdate" type="date" value="${d0}" max="${TODAY}" min="${r.start}"><div class="hint">Date à laquelle le client a rapporté le matériel (prévue : ${fd(r.end,1)}).${d0>r.end?` <b>Retard : ${diff(r.end,d0)} jour(s).</b>`:''}</div></div></div>
+   <div class="modal-foot"><button type="button" class="btn ghost" data-act="closeModal">Annuler</button><button class="btn primary" type="submit">Valider la réception</button></div></form>`,{focus:false});
   $('#rform').addEventListener('submit',e=>{
     e.preventDefault();const d=new FormData(e.target);
-    let prop=0;const inc=[];
+    if(!can('ret')){toast('Droit insuffisant.',1);return}
+    const rdate=String(d.get('rdate')||TODAY);
+    if(rdate<r.start||rdate>TODAY){toast('Date de retour invalide.',1);return}
+    const inc=[];
     for(const l of r.lines){
       const lost=Math.max(0,Math.round(num(d.get('lost_'+l.pid)))),dmg=Math.max(0,Math.round(num(d.get('dmg_'+l.pid)))),mnt=Math.max(0,Math.round(num(d.get('mnt_'+l.pid))));
       if(lost+dmg+mnt>l.qty){toast('« '+prod(l.pid).name+' » : les écarts dépassent la quantité sortie.',1);return}
-      inc.push({l,lost,dmg,mnt});
+      inc.push({l,lost,dmg,mnt,cm:String(d.get('cm_'+l.pid)||'').trim()});
     }
-    const ret=Math.max(0,num(d.get('ret'))),fees=Math.max(0,num(d.get('fees')));
-    const cp=cautionPaid(r);
-    if(ret>cp){toast('La retenue dépasse la caution encaissée ('+F(cp)+').',1);return}
-    inc.forEach(({l,lost,dmg,mnt})=>{
+    inc.forEach(({l,lost,dmg,mnt,cm})=>{
       const p=prod(l.pid);
       addMove(l.pid,'Retour',l.qty-lost,r.no,'');
-      if(lost){addMove(l.pid,'Perte',-lost,r.no,'Manquant au retour');p.stock=Math.max(0,p.stock-lost);r.lost[l.pid]=lost;r.incidents.push({type:'Perte',pid:l.pid,qty:lost,at:nowLocal(),by:S.me,note:'Manquant au retour'})}
-      if(dmg){p.dmg=(p.dmg||0)+dmg;addMove(l.pid,'État',dmg,r.no,'Loué → Endommagé (casse au retour)');r.incidents.push({type:'Endommagé',pid:l.pid,qty:dmg,at:nowLocal(),by:S.me,note:'Casse ou dégradation constatée'})}
-      if(mnt){p.maint=(p.maint||0)+mnt;addMove(l.pid,'État',mnt,r.no,'Loué → En entretien (nettoyage ou réparation)');r.incidents.push({type:'Entretien',pid:l.pid,qty:mnt,at:nowLocal(),by:S.me,note:'Nettoyage ou réparation'})}
+      if(lost){addMove(l.pid,'Perte',-lost,r.no,'Manquant au retour');p.stock=Math.max(0,p.stock-lost);r.lost[l.pid]=lost;r.incidents.push({type:'Perte',pid:l.pid,qty:lost,at:nowLocal(),by:S.me,note:'Manquant au retour'+(cm?' — '+cm:'')})}
+      if(dmg){p.dmg=(p.dmg||0)+dmg;addMove(l.pid,'État',dmg,r.no,'Loué → Endommagé (casse au retour)');r.incidents.push({type:'Endommagé',pid:l.pid,qty:dmg,at:nowLocal(),by:S.me,note:'Casse ou dégradation constatée'+(cm?' — '+cm:'')})}
+      if(mnt){p.maint=(p.maint||0)+mnt;addMove(l.pid,'État',mnt,r.no,'Loué → En entretien (nettoyage ou réparation)');r.incidents.push({type:'Entretien',pid:l.pid,qty:mnt,at:nowLocal(),by:S.me,note:'Nettoyage ou réparation'+(cm?' — '+cm:'')})}
     });
-    r.status='Retournée';r.returnedAt=nowLocal();r.returnedBy=S.me;r.regul=false;
-    r.depositRetained=ret;r.fees=(r.fees||0)+fees;
-    if(r.deposit)r.depositState=ret<=0?'À restituer':ret>=cp?'Retenue':'Partiellement retenue';
-    if(r.deposit&&ret>=cp&&cp>0){r.depositState='Retenue';r.depositClosedOn=TODAY;r.depositBack=0}
-    save();closeModal();render();toast('Retour enregistré.');showRental(id);
+    inc.forEach(({l,lost,dmg,mnt,cm})=>{if(cm&&!lost&&!dmg&&!mnt)r.incidents.push({type:'Remarque',pid:l.pid,qty:0,at:nowLocal(),by:S.me,note:cm})});
+    r.status='Retournée';r.returnedAt=nowLocal();r.returnedBy=S.me;r.returnDate=rdate;r.regul=false;r.settled=false;
+    if(r.deposit)r.depositState='À restituer';
+    save();closeModal();render();toast('Réception enregistrée. Le commercial peut maintenant régler le retour.');showRental(id);
   });
+}
+/* Date de dépôt par le client, notée par le commercial (ou le stock) avant le comptage */
+function noteReturnDate(id){
+  const r=S.rentals.find(x=>x.id===id);
+  formModal({title:'Date de dépôt par le client',narrow:true,fields:[{k:'d',label:'Le client a rapporté le matériel le',type:'date',value:r.returnDate||TODAY,required:true,full:true,hint:'Prévu : '+fd(r.end,1)+'. Cette date servira au calcul des jours supplémentaires. Le comptage du matériel reste fait par le stock.'}],submit:'Enregistrer la date',onSubmit:v=>{
+    if(!can('retDate')){toast('Droit insuffisant.',1);return false}
+    if(v.d<r.start||v.d>TODAY){toast('Date invalide.',1);return false}
+    r.returnDate=v.d;r.incidents.push({type:'Date de retour',pid:r.lines[0].pid,qty:0,at:nowLocal(),by:S.me,note:'Matériel déposé par le client le '+v.d});save();toast('Date de dépôt enregistrée.');setTimeout(()=>{render();showRental(id)},0);
+  }});
+}
+/* Volet 2 — règlement du retour : retard, casse, retenue sur la caution (commercial) */
+function settleForm(id){
+  const r=S.rentals.find(x=>x.id===id);if(!r)return;
+  const cp=cautionPaid(r),D=damageCost(r),d0=r.returnDate||TODAY,ld=lateDaysOf(r,d0),L=Math.round(ld*dailyRate(r)),C=D+L,ret0=Math.min(cp,C);
+  const lostTxt=r.incidents.filter(x=>x.type==='Perte'||x.type==='Endommagé').map(x=>`${x.qty} × ${esc((prod(x.pid)||{}).name)} (${x.type==='Perte'?'manquant':'endommagé'})`).join(', ')||'aucun écart constaté';
+  openModal('Règlement du retour',`<p class="hint" style="margin-top:0">${esc(r.eventName)} — le stock a enregistré la réception. Constat : ${lostTxt}. Casse et pertes au prix de remplacement : <b>${F(D)}</b>.</p>
+  <form id="sform" class="form" data-cp="${cp}" data-d="${D}" data-rate="${dailyRate(r)}" data-end="${r.end}">
+   <div class="field"><label for="sdate">Date réelle de retour</label><input id="sdate" name="sdate" type="date" value="${d0}" min="${r.start}" max="${TODAY}" data-in="settle"><div class="hint">Prévue le ${fd(r.end,1)}. Tarif d’une journée supplémentaire : ${F(Math.round(dailyRate(r)))}.</div></div>
+   <div class="field"><label for="slate">Location supplémentaire (retard) (F)</label><input id="slate" name="slate" type="number" min="0" value="${L}" data-in="settle2"><div class="hint" id="slh">${ld} jour(s) de retard</div></div>
+   <div class="field"><label for="sret">Retenue sur la caution (F)</label><input id="sret" name="sret" type="number" min="0" value="${ret0}"><div class="hint">Caution encaissée : ${F(cp)}.</div></div>
+   <div class="field"><label for="sfees">Complément à payer par le client (F)</label><input id="sfees" name="sfees" type="number" min="0" value="${Math.max(0,C-ret0)}"><div class="hint">Si les coûts (casse, pertes, retard) dépassent la caution, le client paie la différence : une facture complémentaire est éditée. Si la caution est supérieure, le reliquat lui est restitué.</div></div>
+   <div class="modal-foot"><button type="button" class="btn ghost" data-act="closeModal">Annuler</button><button class="btn primary" type="submit">Valider le règlement</button></div></form>`,{focus:false});
+  $('#sform').addEventListener('submit',e=>{
+    e.preventDefault();const d=new FormData(e.target);
+    if(!can('settle')){toast('Droit insuffisant.',1);return}
+    const sd=String(d.get('sdate')||d0),late=Math.max(0,num(d.get('slate'))),ret=Math.max(0,num(d.get('sret'))),fees=Math.max(0,num(d.get('sfees')));
+    if(sd<r.start||sd>TODAY){toast('Date de retour invalide.',1);return}
+    if(ret>cp){toast('La retenue dépasse la caution encaissée ('+F(cp)+').',1);return}
+    r.returnDate=sd;r.lateDays=lateDaysOf(r,sd);r.lateFee=Math.round(late);
+    r.depositRetained=Math.round(ret);r.fees=Math.round(fees);
+    if(r.deposit){r.depositState=ret<=0?'À restituer':ret>=cp?'Retenue':'Partiellement retenue';if(ret>=cp&&cp>0){r.depositClosedOn=TODAY;r.depositBack=0}}
+    r.settled=true;r.settledAt=nowLocal();r.settledBy=S.me;
+    save();closeModal();render();toast('Règlement enregistré.');showRental(id);
+  });
+}
+function waiveForm(id){
+  const r=S.rentals.find(x=>x.id===id);
+  formModal({title:'Dérogation de paiement',narrow:true,fields:[{k:'note',label:'Motif de la dérogation',required:true,full:true,hint:'Normalement, la livraison exige le paiement total (facture et caution). Cette exception sera enregistrée à votre nom, avec la date et le motif.'}],submit:'Autoriser la livraison',onSubmit:v=>{
+    if(!can('waive')){toast('Droit insuffisant.',1);return false}
+    r.exceptionNote=v.note;r.exceptionBy=S.me;r.exceptionAt=nowLocal();save();toast('Dérogation enregistrée.');setTimeout(()=>{render();showRental(id)},0);
+  }});
 }
 function closeDep(id){
   const r=S.rentals.find(x=>x.id===id),back=cautionPaid(r)-(r.depositRetained||0);
+  if(!r.settled){toast('Réglez d’abord le retour (casse, retard, retenue).',1);return}
+  if(balance(r)>0){toast('Le client doit encore payer le complément de dommages : '+F(balance(r))+'.',1);return}
   confirmDialog('Clôturer la caution ?','Restituer '+F(back)+' au client (retenue : '+F(r.depositRetained||0)+'). Le dossier de caution sera clôturé.','Restituer et clôturer',()=>{
     r.depositClosedOn=TODAY;r.depositBack=back;if(r.depositState==='À restituer')r.depositState='Clôturée';save();render();toast('Caution clôturée.');showRental(id);
   });
@@ -946,14 +1032,51 @@ function addPay(id,kind){
   }});
 }
 
-/* ============ impression ============ */
+function printSpecial(id,kind){
+  const r=S.rentals.find(x=>x.id===id),c=client(r.clientId)||{},nd=nDays(r);
+  if((kind==='fr'||kind==='fc')&&!can('money')){toast('Document financier : accès réservé.',1);return}
+  const title=kind==='br'?'Bon de récupération':kind==='fc'?'Facture complémentaire — coûts de dommages':'Fiche de restitution de caution';
+  const head=`<div style="display:flex;justify-content:space-between;align-items:flex-start"><div><h1 style="font-family:'Cormorant Garamond',serif;letter-spacing:.14em">MAJAVA</h1><div>Location événementielle<br>Showroom Yopougon Complexe – Abidjan<br>+225 27 22 48 05 10 · +225 07 58 00 58 52<br>my@majavaci.com</div></div><div style="text-align:right"><h1 style="font-size:1.6rem">${title}</h1><div>N° ${esc(r.no)}<br>Date : ${fd(TODAY,1)}</div></div></div>
+  <div class="meta"><div><b>Client</b><br>${esc(c.name||'')}<br>${esc(c.phone||'')}<br>${esc(c.address||'')}</div><div style="text-align:right"><b>Événement</b><br>${esc(r.eventName)}<br>Du ${fd(r.start,1)} au ${fd(r.end,1)} (${nd} j)</div></div>`;
+  const row=(a,b,o='')=>`<div style="display:flex;justify-content:space-between;${o}"><span>${a}</span><span>${b}</span></div>`;
+  const cm=x=>{const t=(x.note||'').split(' — ')[1]||'';return t};
+  const lineInc=pid=>r.incidents.filter(x=>x.pid===pid&&['Perte','Endommagé','Entretien','Remarque'].includes(x.type));
+  const incTxt=x=>(x.type==='Perte'?x.qty+' manquant(s)':x.type==='Endommagé'?x.qty+' endommagé(s)':x.type==='Entretien'?x.qty+' à nettoyer/réparer':'')+(cm(x)?(x.type==='Remarque'?'':' : ')+cm(x):'');
+  let body;
+  if(kind==='br'){
+    const back=r.status==='Retournée';
+    const rows=r.lines.map(l=>{const p=prod(l.pid),li=back?lineInc(l.pid):[],ras=back&&!li.some(x=>x.type!=='Remarque'&&x.qty>0);
+      return `<tr><td>${esc(p.name)}</td><td style="text-align:right">${l.qty}</td><td style="text-align:center">RAS</td><td style="text-align:right">${back?l.qty-(r.lost[l.pid]||0):''}</td><td style="text-align:center">${back?(ras?'☒ RAS':'☒ Anomalie'):'☐ RAS  ☐ Anomalie'}</td><td>${back?esc(li.map(incTxt).filter(Boolean).join(' ; ')):'&nbsp;'}</td></tr>`}).join('');
+    body=`<p>Matériel à récupérer chez le client le <b>${fd(r.end,1)}</b>${r.returnDate&&r.returnDate>r.end?` (déposé le ${fd(r.returnDate,1)})`:''}${r.pickSlot?`, créneau <b>${esc(r.pickSlot)}</b>`:''}. Ce bon reprend, en miroir, le bon de livraison : à la livraison, tout était « RAS » (rien à signaler). Toute anomalie est notée dans la colonne commentaire.</p><table><thead><tr><th style="text-align:left">Article</th><th style="text-align:right">Qté livrée</th><th>État à la livraison</th><th style="text-align:right">Qté récupérée</th><th>État à la récupération</th><th style="text-align:left">Commentaire (anomalies)</th></tr></thead><tbody>${rows}</tbody></table><div class="sig"><div>Récupéré par (MAJAVA) — nom et signature</div><div>Remis par le client — nom et signature</div></div><p style="font-size:.85rem;margin-top:24px">Les anomalies constatées entraînent des coûts de dommages (prix de remplacement), déduits de la caution ; au-delà, une facture complémentaire est établie.</p>`;
+  }else if(kind==='fc'){
+    const D=damageCost(r),inv=total(r)-(r.fees||0),compPaid=Math.max(0,paid(r)-inv);
+    const dl=r.incidents.filter(x=>x.type==='Perte'||x.type==='Endommagé').map(x=>`<tr><td>${esc((prod(x.pid)||{}).name)}</td><td>${x.type==='Perte'?'Manquant':'Endommagé'}${cm(x)?' — '+esc(cm(x)):''}</td><td style="text-align:right">${x.qty}</td><td style="text-align:right">${F(repl(prod(x.pid)||{price:0}))}</td><td style="text-align:right">${F(x.qty*repl(prod(x.pid)||{price:0}))}</td></tr>`).join('');
+    body=`<table><thead><tr><th style="text-align:left">Article</th><th style="text-align:left">Constat</th><th style="text-align:right">Qté</th><th style="text-align:right">Prix de remplacement</th><th style="text-align:right">Montant</th></tr></thead><tbody>${dl||'<tr><td colspan="5">—</td></tr>'}</tbody></table>
+    <div style="margin-left:auto;width:360px;margin-top:10px">${row('Casse et pertes',F(D))}${r.lateFee?row('Jours de retard ('+r.lateDays+' j)',F(r.lateFee)):''}${row('<b>Total des coûts de dommages</b>','<b>'+F(D+(r.lateFee||0))+'</b>','border-top:1px solid #222;margin-top:4px;padding-top:4px')}${row('Déduit de la caution','− '+F(r.depositRetained||0))}${row('<b>Complément à payer par le client</b>','<b>'+F(r.fees||0)+'</b>','font-size:1.15rem;border-top:2px solid #222;margin-top:6px;padding-top:6px')}${row('Déjà payé (complément)',F(compPaid))}${row('<b>Reste à payer</b>','<b>'+F(Math.max(0,(r.fees||0)-compPaid))+'</b>')}</div>
+    <p style="font-size:.85rem;margin-top:24px">La caution étant inférieure aux coûts de dommages, le client règle la différence (espèces ou mobile money) et la présente facture est remise au client.</p><div class="sig"><div>Établie par (MAJAVA)</div><div>Reçue par le client — nom et signature</div></div>`;
+  }else{
+    const cp=cautionPaid(r),ret=r.depositRetained||0,back=Math.max(0,cp-ret),comp=r.fees||0,compPaid=Math.max(0,paid(r)-(total(r)-comp));
+    const inc=r.incidents.filter(x=>x.type==='Perte'||x.type==='Endommagé').map(x=>`<tr><td>${esc((prod(x.pid)||{}).name)}</td><td>${x.type==='Perte'?'Manquant':'Endommagé'}${cm(x)?' — '+esc(cm(x)):''}</td><td style="text-align:right">${x.qty}</td><td style="text-align:right">${F(x.qty*repl(prod(x.pid)||{price:0}))}</td></tr>`).join('');
+    body=`<div style="margin:12px 0">${row('Caution encaissée','<b>'+F(cp)+'</b>')}${r.lateFee?row('Retard de restitution ('+r.lateDays+' jour'+(r.lateDays>1?'s':'')+')',F(r.lateFee)):''}${row('Coûts de dommages (casse, pertes, retard)',F(ret+comp))}${row('Retenue sur la caution','− '+F(ret))}${comp>0?row('<b>Complément à payer par le client</b> (facture complémentaire)','<b>'+F(comp)+'</b>','margin-top:4px'):''}${comp>0?row('Complément déjà payé',F(compPaid)):''}${row('<b>Reliquat de caution restitué au client</b>','<b>'+F(back)+'</b>','font-size:1.25rem;border-top:2px solid #222;margin-top:6px;padding-top:6px')}</div>
+    ${inc?`<table><thead><tr><th style="text-align:left">Article</th><th style="text-align:left">Constat</th><th style="text-align:right">Qté</th><th style="text-align:right">Valeur de remplacement</th></tr></thead><tbody>${inc}</tbody></table>`:'<p>Aucun écart constaté au retour.</p>'}
+    <p style="margin-top:20px">Je soussigné(e) reconnais ${back>0?`avoir reçu la somme de <b>${F(back)}</b> au titre de la restitution de ma caution`:'ne rien devoir recevoir au titre de ma caution, entièrement retenue'}${comp>0?` et ${compPaid>=comp?'avoir payé':'devoir payer'} le complément de <b>${F(comp)}</b> pour les coûts de dommages`:''}. Le dossier de l’événement « ${esc(r.eventName)} » est clôturé.</p><div class="sig"><div>Restituée par (MAJAVA) — nom et signature</div><div>Reçue par le client — nom, date et signature</div></div>`;
+  }
+  $('#print').innerHTML=head+body;
+  document.body.classList.add('printing');
+  const done=()=>{document.body.classList.remove('printing');window.removeEventListener('afterprint',done)};
+  window.addEventListener('afterprint',done);
+  try{window.print()}catch(e){done();toast('L’impression n’est pas disponible dans cet aperçu.',1)}
+  setTimeout(()=>{if(document.body.classList.contains('printing'))done()},1500);
+}
 function printDoc(id,kind){
+  if(kind==='br'||kind==='fr'||kind==='fc'){printSpecial(id,kind);return}
+  if((kind==='facture'||kind==='devis')&&!can('money')){toast('Document financier : accès réservé.',1);return}
   const r=S.rentals.find(x=>x.id===id),c=client(r.clientId)||{},nd=nDays(r);
   const title=kind==='bl'?'Bon de livraison':kind==='facture'?'Facture':'Devis';
-  const rows=r.lines.map(l=>{const p=prod(l.pid);return kind==='bl'?`<tr><td>${esc(p.name)}</td><td style="text-align:right">${l.qty}</td><td style="text-align:center">☐</td></tr>`:`<tr><td>${esc(p.name)}</td><td style="text-align:right">${l.qty}</td><td style="text-align:right">${F(l.price)}</td><td style="text-align:right">${F(l.qty*l.price*nd)}</td></tr>`}).join('');
+  const rows=r.lines.map(l=>{const p=prod(l.pid);return kind==='bl'?`<tr><td>${esc(p.name)}</td><td style="text-align:right">${l.qty}</td><td style="text-align:center">☐ RAS  ☐ Anomalie</td><td>&nbsp;</td></tr>`:`<tr><td>${esc(p.name)}</td><td style="text-align:right">${l.qty}</td><td style="text-align:right">${F(l.price)}</td><td style="text-align:right">${F(l.qty*l.price*nd)}</td></tr>`}).join('');
   $('#print').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start"><div><h1 style="font-family:'Cormorant Garamond',serif;letter-spacing:.14em">MAJAVA</h1><div>Location événementielle<br>Showroom Yopougon Complexe – Abidjan<br>+225 27 22 48 05 10 · +225 07 58 00 58 52<br>my@majavaci.com</div></div><div style="text-align:right"><h1 style="font-size:1.6rem">${title}</h1><div>N° ${esc(r.no)}<br>Date : ${fd(TODAY,1)}</div></div></div>
-  <div class="meta"><div><b>Client</b><br>${esc(c.name||'')}<br>${esc(c.phone||'')}<br>${esc(c.address||'')}</div><div style="text-align:right"><b>Événement</b><br>${esc(r.eventName)}<br>Du ${fd(r.start,1)} au ${fd(r.end,1)} (${nd} j)</div></div>
-  <table><thead>${kind==='bl'?'<tr><th style="text-align:left">Article</th><th style="text-align:right">Quantité</th><th>Vérifié</th></tr>':'<tr><th style="text-align:left">Article</th><th style="text-align:right">Qté</th><th style="text-align:right">Prix/jour</th><th style="text-align:right">Total</th></tr>'}</thead><tbody>${rows}</tbody></table>
+  <div class="meta"><div><b>Client</b><br>${esc(c.name||'')}<br>${esc(c.phone||'')}<br>${esc(c.address||'')}</div><div style="text-align:right"><b>Événement</b><br>${esc(r.eventName)}<br>Du ${fd(r.start,1)} au ${fd(r.end,1)} (${nd} j)${r.delivSlot&&kind==='bl'?'<br>Livraison : '+esc(r.delivSlot):''}</div></div>
+  <table><thead>${kind==='bl'?'<tr><th style="text-align:left">Article</th><th style="text-align:right">Qté livrée</th><th>État à la livraison</th><th style="text-align:left">Commentaire</th></tr>':'<tr><th style="text-align:left">Article</th><th style="text-align:right">Qté</th><th style="text-align:right">Prix/jour</th><th style="text-align:right">Total</th></tr>'}</thead><tbody>${rows}</tbody></table>
   ${kind==='bl'?'<div class="sig"><div>Remis par (MAJAVA)</div><div>Reçu par le client — nom et signature</div></div><p style="font-size:.85rem;margin-top:24px">Le matériel manquant ou détérioré sera facturé au prix de remplacement.</p>':`<div style="margin-left:auto;width:320px"><div style="display:flex;justify-content:space-between"><span>Location</span><span>${F(subtotal(r))}</span></div><div style="display:flex;justify-content:space-between"><span>Livraison & installation</span><span>${F(r.delivery||0)}</span></div>${r.fees?`<div style="display:flex;justify-content:space-between"><span>Frais manquants / casse</span><span>${F(r.fees)}</span></div>`:''}${r.discount?`<div style="display:flex;justify-content:space-between"><span>Remise</span><span>− ${F(r.discount)}</span></div>`:''}<div style="display:flex;justify-content:space-between;font-size:1.25rem;font-weight:800;border-top:2px solid #222;margin-top:6px;padding-top:6px"><span>Total</span><span>${F(total(r))}</span></div><div style="display:flex;justify-content:space-between"><span>Déjà payé</span><span>${F(paid(r))}</span></div><div style="display:flex;justify-content:space-between;font-weight:800"><span>Reste à payer</span><span>${F(balance(r))}</span></div>${r.deposit?`<div style="display:flex;justify-content:space-between;margin-top:6px"><span>Caution</span><span>${F(r.deposit)}</span></div>`:''}</div><p style="font-size:.85rem;margin-top:30px">Merci de votre confiance. Votre satisfaction est notre meilleure publicité !</p>`}`;
   document.body.classList.add('printing');
   const done=()=>{document.body.classList.remove('printing');window.removeEventListener('afterprint',done)};
@@ -1067,7 +1190,7 @@ function vStock(){
   return `<div class="bar-row"><div class="search">${ic('search',16)}<input type="search" placeholder="Rechercher un article ou une référence" value="${esc(ui.sq)}" data-in="sq" aria-label="Rechercher un article"></div>
    <select data-in="scat" style="width:auto" aria-label="Famille"><option>Tous</option>${CATS.map(c=>`<option ${c===ui.scat?'selected':''}>${esc(c)}</option>`).join('')}</select>
    <button class="chip ${ui.slow?'on':''}" data-act="slow">${ic('alert',14)} Stock bas seulement</button><span class="grow"></span>
-   <button class="btn" data-act="csvStock">${ic('copy',16)} Export CSV</button>${can('stock')?`<button class="btn primary" data-act="newProduct">${ic('plus',16)} Nouvel article</button>`:''}</div>
+   <button class="btn" data-act="csvStock">${ic('copy',16)} Export CSV</button>${can('create')?`<button class="btn primary" data-act="newProduct">${ic('plus',16)} Nouvel article</button>`:''}</div>
   <p class="hint" style="margin:-6px 0 12px">${S.products.length} références · ${money(units)} pièces · ${mt} en entretien · ${dm} endommagées (exclues des disponibilités tant que l’état n’est pas changé manuellement).</p>
   <section class="panel" style="padding:6px 8px"><div class="scroll" id="stable">${stockTable(list)}</div></section>`;
 }
@@ -1090,18 +1213,20 @@ function showProduct(id){
   <div class="kv"><div><span>Disponible</span><b>${b.dispo}</b></div><div><span>Réservé</span><b>${b.reserve}</b></div><div><span>Loué</span><b>${b.loue}</b></div><div><span>En entretien</span><b class="${b.maint?'neg':''}">${b.maint}</b></div><div><span>Endommagé</span><b class="${b.dmg?'neg':''}">${b.dmg}</b></div></div>
   <h3 style="margin-bottom:6px">Réservations à venir et en cours</h3>${up.length?`<div class="scroll"><table><tbody>${up.map(r=>`<tr data-act="openRental" data-id="${r.id}"><td>${fd(r.start)}${r.end!==r.start?' → '+fd(r.end):''}</td><td>${esc(r.eventName)}</td><td class="num">${r.lines.filter(l=>l.pid===id).reduce((a,l)=>a+l.qty,0)} pièces</td><td>${badge(r.status)}</td></tr>`).join('')}</tbody></table></div>`:`<p class="hint">Aucune réservation.</p>`}
   <h3 style="margin:16px 0 6px">Historique des mouvements</h3><div class="scroll"><table><tbody>${mv.map(m=>`<tr><td>${fdt(m.at||m.date)}</td><td>${esc(m.type)}</td><td class="num ${m.qty>0?'pos':'neg'}">${m.qty>0?'+':''}${m.qty}</td><td class="num hint">reste ${BAL[m.id]??'—'}</td><td class="hint">${esc(m.ref||'')} ${esc(m.note||'')}</td><td class="hint">${esc(staffName(m.by))}</td></tr>`).join('')}</tbody></table></div>
-  <div class="actions">${can('stateEdit')?`<button class="btn primary" data-act="stateForm" data-id="${p.id}">Changer l’état d’unités</button>`:''}${can('stock')?`<button class="btn" data-act="adjust" data-id="${p.id}">Ajuster le stock</button><button class="btn" data-act="editProduct" data-id="${p.id}">${ic('edit',16)} Modifier la fiche</button>`:''}</div>`,{badge:`<span class="badge ${c}">${t}</span>`,focus:false});
+  <div class="actions">${can('stateEdit')?`<button class="btn primary" data-act="stateForm" data-id="${p.id}">Changer l’état d’unités</button>`:''}${can('qty')?`<button class="btn" data-act="adjust" data-id="${p.id}">Ajuster le stock</button>`:''}${can('create')?`<button class="btn" data-act="editProduct" data-id="${p.id}">${ic('edit',16)} Modifier la fiche</button>`:''}${can('signal')?`<button class="btn" data-act="signalForm" data-id="${p.id}">Signaler au stock</button>`:''}</div>`,{badge:`<span class="badge ${c}">${t}</span>`,focus:false});
 }
 /* changement d'état manuel : seul moyen de sortir une pièce d'« En entretien » ou « Endommagé » */
 const TRANS=[['dispo>maint','Disponible → En entretien'],['maint>dispo','En entretien → Disponible (remise en service)'],['dispo>dmg','Disponible → Endommagé'],['dmg>maint','Endommagé → En entretien (réparation)'],['dmg>dispo','Endommagé → Disponible (réparé)'],['dmg>rebut','Endommagé → Mis au rebut (sort du parc)'],['maint>rebut','En entretien → Mis au rebut (sort du parc)'],['dispo>rebut','Disponible → Mis au rebut (sort du parc)']];
+const MAINT_OK=['dispo>maint','dispo>dmg','dmg>maint'];
+const transFor=()=>can('restock')?TRANS:TRANS.filter(t=>MAINT_OK.includes(t[0]));
 function stateForm(id){
   const p=prod(id),phys=usable(p)-outNow(p.id);
   formModal({title:'Changer l’état — '+p.name,narrow:true,fields:[
-    {k:'tr',label:'Changement',type:'select',full:true,options:TRANS,hint:`Disponible en magasin : ${Math.max(0,phys)} · En entretien : ${p.maint||0} · Endommagé : ${p.dmg||0}`},
+    {k:'tr',label:'Changement',type:'select',full:true,options:transFor(),hint:`Disponible en magasin : ${Math.max(0,phys)} · En entretien : ${p.maint||0} · Endommagé : ${p.dmg||0}`},
     {k:'qty',label:'Quantité',type:'number',min:1,step:1,required:true,full:true,value:1},
     {k:'note',label:'Motif (facultatif)',full:true}],
    submit:'Enregistrer le changement',onSubmit:v=>{
-    if(!can('stateEdit')){toast('Droit insuffisant.',1);return false}
+    if(!can('stateEdit')||!transFor().some(t=>t[0]===v.tr)){toast(can('stateEdit')?'La remise en stock et le rebut sont réservés au service stock. Utilisez « Signaler au stock ».':'Droit insuffisant.',1);return false}
     const q=Math.round(v.qty);if(q<=0){toast('Quantité invalide.',1);return false}
     const [from,to]=v.tr.split('>');
     const have=from==='dispo'?Math.max(0,phys):from==='maint'?(p.maint||0):(p.dmg||0);
@@ -1116,10 +1241,11 @@ function stateForm(id){
 function adjustForm(id){
   const p=prod(id);
   formModal({title:'Ajuster le stock — '+p.name,narrow:true,fields:[
-    {k:'type',label:'Type de mouvement',type:'select',full:true,options:[['in','Entrée (achat, réception)'],['loss','Perte ou vol'],['set','Correction d’inventaire (nouveau total)']]},
+    {k:'type',label:'Type de mouvement',type:'select',full:true,options:[['in','Entrée (achat, réception)'],...(can('stock')?[['loss','Perte ou vol']]:[]),['set','Correction d’inventaire (nouveau total)']]},
     {k:'qty',label:'Quantité',type:'number',min:0,step:1,required:true,full:true,hint:'Stock actuel : '+p.stock+'. Pour une correction, saisissez le nouveau total.'},
     {k:'note',label:'Motif (facultatif)',full:true}],
    onSubmit:v=>{
+    if(!can('qty')||(v.type==='loss'&&!can('stock'))){toast('Droit insuffisant.',1);return false}
     const q=Math.round(v.qty);if(q<0||(v.type!=='set'&&q===0)){toast('Saisissez une quantité valide.',1);return false}
     if(v.type==='in'){p.stock+=q;addMove(id,'Entrée',q,'',v.note)}
     else if(v.type==='loss'){if(q>usable(p)-outNow(id)){toast('Perte supérieure aux pièces disponibles en magasin.',1);return false}p.stock-=q;addMove(id,'Perte',-q,'',v.note||'Perte / vol')}
@@ -1128,17 +1254,18 @@ function adjustForm(id){
    }});
 }
 function productForm(id){
+  if(!can('create')){toast('Droit insuffisant.',1);return}
   const p=id?prod(id):{name:'',cat:CATS[0],range:'',price:0,stock:0,min:1,cost:0};
   formModal({title:id?'Modifier l’article':'Nouvel article',fields:[
     {k:'name',label:'Nom de l’article',required:true,value:p.name,full:true},
     {k:'cat',label:'Famille',type:'select',options:CATS,value:p.cat},{k:'range',label:'Gamme / sous-famille',value:p.range},
     ...(can('money')?[{k:'price',label:'Prix de location / jour (F)',type:'number',min:0,value:p.price,required:true},
     {k:'cost',label:'Coût d’achat (F)',type:'number',min:0,value:p.cost}]:[]),
-    ...(id?[]:[{k:'stock',label:'Quantité en stock',type:'number',min:0,value:p.stock}]),
+    ...(id||!can('qty')?[]:[{k:'stock',label:'Quantité en stock (si vous la connaissez)',type:'number',min:0,value:p.stock,hint:'Laissez 0 si la quantité n’est pas connue : le service stock la renseignera.'}]),
     {k:'min',label:'Seuil d’alerte (stock bas)',type:'number',min:0,value:p.min}],
    onSubmit:v=>{
     if(id){Object.assign(p,{name:v.name,cat:v.cat,range:v.range,price:v.price??p.price,cost:v.cost??p.cost,min:v.min})}
-    else{const np={id:uid('p'),ref:(v.cat.slice(0,3).toUpperCase())+'-'+String(S.products.length+1).padStart(3,'0'),name:v.name,cat:v.cat,range:v.range||'—',price:v.price||0,cost:v.cost||0,stock:Math.round(v.stock),min:Math.round(v.min),maint:0,dmg:0};S.products.push(np);if(np.stock)addMove(np.id,'Entrée',np.stock,'','Stock initial')}
+    else{const np={id:uid('p'),ref:(v.cat.slice(0,3).toUpperCase())+'-'+String(S.products.length+1).padStart(3,'0'),name:v.name,cat:v.cat,range:v.range||'—',price:v.price||0,cost:v.cost||0,stock:Math.round(v.stock||0),min:Math.round(v.min),maint:0,dmg:0};S.products.push(np);if(np.stock)addMove(np.id,'Entrée',np.stock,'','Stock initial')}
     save();render();toast(id?'Article mis à jour.':'Article ajouté au catalogue.');
    }});
 }
@@ -1148,57 +1275,123 @@ function vMoves(){
   const types=['all',...MOVE_TYPES];
   const BAL=moveBalances();const list=S.moves.filter(m=>ui.mtype==='all'||m.type===ui.mtype).sort((a,b)=>(b.at||b.date).localeCompare(a.at||a.date)||b.seq-a.seq).slice(0,200);
   return `<div class="bar-row"><div class="chips">${types.map(t=>`<button class="chip ${ui.mtype===t?'on':''}" data-act="mtype" data-v="${t}">${t==='all'?'Tous':t}</button>`).join('')}</div></div>
-  <section class="panel" style="padding:6px 8px"><div class="scroll">${list.length?`<table><thead><tr><th>Date et heure</th><th>Article</th><th>Mouvement</th><th class="num">Quantité</th><th class="num">Solde en magasin</th><th>Commande</th><th>Par</th></tr></thead><tbody>${list.map(m=>{const p=prod(m.pid)||{name:'?'};return `<tr><td>${fdt(m.at||m.date)}</td><td>${esc(p.name)}</td><td>${esc(m.type)}${m.note?`<span class="sub">${esc(m.note)}</span>`:''}</td><td class="num ${m.qty>0?'pos':'neg'}"><b>${m.qty>0?'+':''}${m.qty}</b></td><td class="num"><b>${BAL[m.id]??'—'}</b></td><td>${esc(m.ref||'—')}</td><td>${esc(staffName(m.by))}</td></tr>`}).join('')}</tbody></table>`:empty('Aucun mouvement','Les entrées, sorties, retours et changements d’état apparaîtront ici.')}</div></section><p class="hint">Journal horodaté, lié à la commande et à l’utilisateur. Les 200 derniers mouvements sont affichés.</p>`;
+  <section class="panel" style="padding:6px 8px"><div class="scroll">${list.length?`<table><thead><tr><th>Date et heure</th><th>Article</th><th>Mouvement</th><th class="num">Quantité</th><th class="num">Solde en magasin</th><th>Commande</th><th>Par</th></tr></thead><tbody>${list.map(m=>{const p=prod(m.pid)||{name:'?'};return `<tr><td>${fdt(m.at||m.date)}</td><td>${esc(p.name)}</td><td>${esc(m.type)}${m.note?`<span class="sub">${esc(m.note)}</span>`:''}</td><td class="num ${m.qty>0?'pos':m.qty<0?'neg':''}"><b>${m.qty>0?'+':''}${m.qty||'—'}</b></td><td class="num"><b>${BAL[m.id]??'—'}</b></td><td>${esc(m.ref||'—')}</td><td>${esc(staffName(m.by))}</td></tr>`}).join('')}</tbody></table>`:empty('Aucun mouvement','Les entrées, sorties, retours et changements d’état apparaîtront ici.')}</div></section><p class="hint">Journal horodaté, lié à la commande et à l’utilisateur. Les 200 derniers mouvements sont affichés.</p>`;
 }
 
 /* ============ articles mis au rebut ============ */
 function vRebut(){
-  const BAL=moveBalances();
   const list=S.moves.filter(m=>m.type==='Rebut').sort((a,b)=>(b.at||b.date).localeCompare(a.at||a.date)||b.seq-a.seq);
-  const isT=m=>/→ Transformé en/.test(m.note||'');const tot=list.filter(m=>!isT(m)).reduce((a,m)=>a-m.qty,0),totT=list.filter(isT).reduce((a,m)=>a-m.qty,0);
+  const isT=m=>/→ Transformé en/.test(m.note||'');
+  const tot=list.filter(m=>!isT(m)).reduce((a,m)=>a-m.qty,0),totT=list.filter(isT).reduce((a,m)=>a-m.qty,0);
   const arts={};list.forEach(m=>{arts[m.pid]=(arts[m.pid]||0)-m.qty});
-  const top=Object.entries(arts).sort((a,b)=>b[1]-a[1]).slice(0,6);
-  return `<div class="bar-row"><span class="grow"></span>${can('stock')?`<button class="btn primary" data-act="newRebut">${ic('plus',16)} Mettre un article au rebut</button>`:''}</div>
+  const sig=pendingSignals();
+  const btns=`${can('stock')?`<button class="btn primary" data-act="newRebut">${ic('plus',16)} Mettre un article au rebut</button>`:''}${can('transform')?`<button class="btn primary" data-act="newTransform">${ic('swap',16)} Notifier une transformation</button>`:''}${can('advise')?`<button class="btn" data-act="newAdvice">${ic('alert',16)} Demander un avis</button>`:''}${can('signal')?`<button class="btn" data-act="newSignal">${ic('alert',16)} Signaler au stock</button>`:''}`;
+  return `<div class="bar-row"><span class="grow"></span>${btns}</div>
+  ${sig.length?`<section class="panel" style="margin-bottom:16px"><div class="panel-h"><h3>Signalements à traiter par le stock</h3><small>${sig.length}</small></div><div class="scroll"><table><tbody>${sig.map(x=>`<tr><td>${fdt(x.m.at||x.m.date)}</td><td><b>${esc(x.p.name)}</b><span class="sub">${esc(x.m.note.replace(/^Signalement /,''))}</span></td><td>${esc(staffName(x.m.by))}</td><td><span class="badge ${x.kind==='rebut'?'b-bad':'b-info'}">${x.kind==='rebut'?'À mettre au rebut':'À remettre en stock'}</span></td><td class="num">${can('stock')?`<button class="btn sm primary" data-act="treatSignal" data-id="${x.p.id}" data-v="${x.kind}">Traiter</button>`:''}</td></tr>`).join('')}</tbody></table></div></section>`:''}
+  ${advicePanel()}
   <div class="kpis"><div class="kpi"><span>Rebut définitif</span><b>${tot}</b><small>pièces jetées</small></div><div class="kpi"><span>Transformées</span><b>${totT}</b><small>pièces recyclées en autre article</small></div><div class="kpi"><span>Articles concernés</span><b>${Object.keys(arts).length}</b><small>références différentes</small></div></div>
-  <section class="panel" style="padding:6px 8px"><div class="scroll">${list.length?`<table><thead><tr><th>Date et heure</th><th>Article</th><th class="num">Quantité</th><th>Devenir</th><th>Provenance et motif</th><th>Par</th></tr></thead><tbody>${list.map(m=>{const p=prod(m.pid)||{name:'?',ref:''};return `<tr><td>${fdt(m.at||m.date)}</td><td><b>${esc(p.name)}</b><span class="sub">${esc(p.ref)}</span></td><td class="num neg"><b>${m.qty}</b></td><td><span class="badge ${isT(m)?'b-info':'b-bad'}">${isT(m)?'Transformé':'Rebut définitif'}</span></td><td>${esc(m.note||'—')}</td><td>${esc(staffName(m.by))}</td></tr>`}).join('')}</tbody></table>`:empty('Aucun article au rebut','Les articles inutilisables, mis hors service définitivement, apparaîtront ici et sortiront du stock.')}</div></section>
-  <p class="hint">Un article mis au rebut est retiré du stock : il n’est plus compté dans le total ni dans les disponibilités. Une pièce transformée (par exemple une nappe abîmée en serviettes) sort aussi du stock d’origine, et le nouvel article y est ajouté. Les pièces encore réparables restent « Endommagé » ou « En entretien », et peuvent être remises en service. L’opération est enregistrée dans les mouvements de stock.</p>`;
+  <section class="panel" style="padding:6px 8px"><div class="scroll">${list.length?`<table><thead><tr><th>Date et heure</th><th>Article</th><th class="num">Quantité</th><th>Devenir</th><th>Provenance et motif</th><th>Par</th></tr></thead><tbody>${list.map(m=>{const p=prod(m.pid)||{name:'?',ref:''};return `<tr><td>${fdt(m.at||m.date)}</td><td><b>${esc(p.name)}</b><span class="sub">${esc(p.ref)}</span></td><td class="num neg"><b>${m.qty}</b></td><td><span class="badge ${isT(m)?'b-info':'b-bad'}">${isT(m)?'Transformé':'Rebut définitif'}</span></td><td>${esc(m.note||'—')}</td><td>${esc(staffName(m.by))}</td></tr>`}).join('')}</tbody></table>`:empty('Aucun article au rebut','Les articles inutilisables apparaîtront ici et sortiront du stock.')}</div></section>
+  <p class="hint">Qui fait quoi : le <b>service stock</b> met au rebut et remet en stock ; le <b>service entretien</b> notifie les transformations (ex. nappe abîmée en serviettes) ; l’entretien et le commercial <b>signalent</b> au stock les pièces prêtes ou à mettre au rebut. Les pièces encore réparables restent « Endommagé » ou « En entretien ».</p>`;
 }
-function rebutForm(){
-  if(!can('stock')){toast('Droit insuffisant.',1);return}
+function findProd(name){return S.products.find(x=>x.name.toLowerCase()===String(name||'').trim().toLowerCase())}
+function srcHave(p,from){return from==='dispo'?Math.max(0,usable(p)-outNow(p.id)):from==='maint'?(p.maint||0):(p.dmg||0)}
+const SRC_LABEL={dmg:'Endommagé',maint:'En entretien',dispo:'Disponible'};
+/* Mise en rebut : décidée et enregistrée par le service stock (l’entretien et le commercial signalent seulement) */
+function rebutForm(pid){
+  if(!can('stock')){toast('Seul le service stock met un article au rebut. L’entretien et le commercial peuvent le signaler.',1);return}
+  const p0=pid?prod(pid):null;
   formModal({title:'Mettre un article au rebut',narrow:true,fields:[
-    {k:'art',label:'Article',required:true,full:true,list:'plist',hint:'Commencez à saisir le nom.'},
-    {k:'from',label:'Provenance',type:'select',full:true,options:[['dmg','Endommagé'],['maint','En entretien'],['dispo','Disponible en magasin']]},
+    {k:'art',label:'Article',required:true,full:true,list:'plist',value:p0?p0.name:'',hint:'Commencez à saisir le nom. Pièce inutilisable, qui sort définitivement du stock.'},
+    {k:'from',label:'Provenance',type:'select',full:true,value:'dmg',options:[['dmg','Endommagé'],['maint','En entretien'],['dispo','Disponible en magasin']]},
     {k:'qty',label:'Quantité',type:'number',min:1,step:1,required:true,full:true,value:1},
-    {k:'dest',label:'Devenir de la pièce',type:'select',full:true,options:[['def','Rebut définitif (inutilisable, jetée)'],['transf','Transformée en un autre article (ex. nappe abîmée → serviettes)']]},
-    {k:'art2',label:'Si transformée : nouvel article obtenu',full:true,list:'plist',hint:'Laissez vide pour un rebut définitif.'},
-    {k:'qty2',label:'Si transformée : quantité obtenue',type:'number',min:1,step:1,full:true},
     {k:'note',label:'Motif (obligatoire)',required:true,full:true}],
-   submit:'Enregistrer',onSubmit:v=>{
-    const p=S.products.find(x=>x.name.toLowerCase()===String(v.art).trim().toLowerCase());
-    if(!p){toast('Article introuvable : choisissez un nom du catalogue.',1);return false}
+   submit:'Mettre au rebut',onSubmit:v=>{
+    if(!can('stock')){toast('Droit insuffisant.',1);return false}
+    const p=findProd(v.art);if(!p){toast('Article introuvable : choisissez un nom du catalogue.',1);return false}
     const q=Math.round(v.qty);if(!(q>0)){toast('Quantité invalide.',1);return false}
-    const phys=Math.max(0,usable(p)-outNow(p.id));
-    const have=v.from==='dispo'?phys:v.from==='maint'?(p.maint||0):(p.dmg||0);
-    if(q>have){toast('Seulement '+have+' pièce(s) dans cet état.',1);return false}
-    let p2=null,q2=0;
-    if(v.dest==='transf'){
-      p2=S.products.find(x=>x.name.toLowerCase()===String(v.art2||'').trim().toLowerCase());
-      q2=Math.round(v.qty2||0);
-      if(!p2){toast('Choisissez le nouvel article obtenu (nom du catalogue).',1);return false}
-      if(p2.id===p.id){toast('Le nouvel article doit être différent.',1);return false}
-      if(!(q2>0)){toast('Indiquez la quantité obtenue.',1);return false}
-    }
+    const have=srcHave(p,v.from);if(q>have){toast('Seulement '+have+' pièce(s) dans cet état.',1);return false}
     if(v.from==='maint')p.maint-=q;if(v.from==='dmg')p.dmg-=q;
     p.stock=Math.max(0,p.stock-q);
-    const lab={dmg:'Endommagé',maint:'En entretien',dispo:'Disponible'}[v.from];
-    if(p2){
-      addMove(p.id,'Rebut',-q,'',lab+' → Transformé en '+p2.name+' (×'+q2+') — '+v.note);
-      p2.stock+=q2;addMove(p2.id,'Entrée',q2,'','Transformation : issu de '+p.name+' (×'+q+')');
-      save();render();toast('Transformation enregistrée : '+q2+' × '+p2.name+' ajouté(s) au stock.');
-    }else{
-      addMove(p.id,'Rebut',-q,'',(TRANS.find(t=>t[0]===v.from+'>rebut')[1])+' — '+v.note);
-      save();render();toast('Article mis au rebut et retiré du stock.');
-    }
+    addMove(p.id,'Rebut',-q,'',SRC_LABEL[v.from]+' → Mis au rebut (sort du parc) — '+v.note);
+    save();render();toast('Article mis au rebut et retiré du stock.');
+   }});
+}
+/* Transformation : notifiée par le service entretien (ex. nappe abîmée → serviettes) */
+function transformForm(pid){
+  if(!can('transform')){toast('La transformation est notifiée par le service entretien.',1);return}
+  const p0=pid?prod(pid):null;
+  formModal({title:'Transformer une pièce en un autre article',narrow:true,fields:[
+    {k:'art',label:'Article d’origine',required:true,full:true,list:'plist',value:p0?p0.name:'',hint:'Par exemple une nappe abîmée.'},
+    {k:'from',label:'Provenance',type:'select',full:true,value:'dmg',options:[['dmg','Endommagé'],['maint','En entretien'],['dispo','Disponible en magasin']]},
+    {k:'qty',label:'Quantité transformée',type:'number',min:1,step:1,required:true,full:true,value:1},
+    {k:'art2',label:'Nouvel article obtenu',required:true,full:true,list:'plist',hint:'Par exemple des serviettes.'},
+    {k:'qty2',label:'Quantité obtenue',type:'number',min:1,step:1,required:true,full:true,value:1},
+    {k:'note',label:'Motif (obligatoire)',required:true,full:true}],
+   submit:'Enregistrer la transformation',onSubmit:v=>{
+    if(!can('transform')){toast('Droit insuffisant.',1);return false}
+    const p=findProd(v.art),p2=findProd(v.art2);
+    if(!p){toast('Article d’origine introuvable.',1);return false}
+    if(!p2){toast('Nouvel article introuvable : choisissez un nom du catalogue.',1);return false}
+    if(p2.id===p.id){toast('Le nouvel article doit être différent.',1);return false}
+    const q=Math.round(v.qty),q2=Math.round(v.qty2);if(!(q>0)||!(q2>0)){toast('Quantités invalides.',1);return false}
+    const have=srcHave(p,v.from);if(q>have){toast('Seulement '+have+' pièce(s) dans cet état.',1);return false}
+    if(v.from==='maint')p.maint-=q;if(v.from==='dmg')p.dmg-=q;
+    p.stock=Math.max(0,p.stock-q);
+    addMove(p.id,'Rebut',-q,'',SRC_LABEL[v.from]+' → Transformé en '+p2.name+' (×'+q2+') — '+v.note);
+    p2.stock+=q2;addMove(p2.id,'Entrée',q2,'','Transformation : issu de '+p.name+' (×'+q+')');
+    save();render();toast('Transformation enregistrée : '+q2+' × '+p2.name+' ajouté(s) au stock.');
+   }});
+}
+/* Signalement : l’entretien ou le commercial prévient le stock ; le stock décide et enregistre */
+function signalForm(pid){
+  if(!can('signal')){toast('Droit insuffisant.',1);return}
+  const p0=pid?prod(pid):null;
+  formModal({title:'Signaler au service stock',narrow:true,fields:[
+    {k:'art',label:'Article',required:true,full:true,list:'plist',value:p0?p0.name:''},
+    {k:'kind',label:'Je signale que',type:'select',full:true,options:[['restock','des pièces sont prêtes à être remises en stock'],['rebut','des pièces sont à mettre au rebut']]},
+    {k:'qty',label:'Quantité',type:'number',min:1,step:1,required:true,full:true,value:1},
+    {k:'note',label:'Précision (facultatif)',full:true,hint:'Le service stock décide et enregistre la remise en stock ou le rebut.'}],
+   submit:'Envoyer le signalement',onSubmit:v=>{
+    if(!can('signal')){toast('Droit insuffisant.',1);return false}
+    const p=findProd(v.art);if(!p){toast('Article introuvable : choisissez un nom du catalogue.',1);return false}
+    const q=Math.round(v.qty);if(!(q>0)){toast('Quantité invalide.',1);return false}
+    addMove(p.id,'État',0,'','Signalement '+(v.kind==='rebut'?'à mettre au rebut':'prêt à remettre en stock')+' ×'+q+(v.note?' — '+v.note:''));
+    save();render();toast('Signalement envoyé au service stock.');
+   }});
+}
+
+/* ---- avis : l'entretien demande, le commercial (ou un collaborateur) répond ---- */
+function advicePanel(){
+  const ad=pendingAdvice();
+  const done=S.moves.filter(m=>isAdvice(m)&&/^Avis demandé/.test(m.note)&&adviceAnswers(m.id).length).sort((a,b)=>(b.at||b.date).localeCompare(a.at||a.date)).slice(0,5);
+  if(!ad.length&&!done.length)return '';
+  const qtxt=n=>esc(n.replace(/^Avis demandé\s*:?\s*/,''));
+  return `<section class="panel" style="margin-bottom:16px"><div class="panel-h"><h3>Avis demandés (transformation, remise en stock…)</h3><small>${ad.length} en attente</small></div><div class="scroll"><table><tbody>${ad.map(x=>`<tr><td>${fdt(x.m.at||x.m.date)}</td><td><b>${esc(x.p.name)}</b><span class="sub">${qtxt(x.m.note)}</span></td><td>${esc(staffName(x.m.by))}</td><td class="num">${can('advise')?`<button class="btn sm primary" data-act="answerAdvice" data-id="${x.m.id}">Donner mon avis</button>`:''}</td></tr>`).join('')}${done.map(m=>{const p=prod(m.pid)||{name:'?'};return `<tr><td>${fdt(m.at||m.date)}</td><td><b>${esc(p.name)}</b><span class="sub">${qtxt(m.note)}</span>${adviceAnswers(m.id).map(a=>`<span class="sub">↳ ${esc(staffName(a.by))} : ${esc(a.note.replace(/^Avis réponse\s*\[[^\]]*\]\s*—?\s*/,''))}</span>`).join('')}</td><td>${esc(staffName(m.by))}</td><td class="num"><span class="badge b-ok">Répondu</span></td></tr>`}).join('')}</tbody></table></div></section>`;
+}
+function adviceForm(pid){
+  if(!can('advise')){toast('Droit insuffisant.',1);return}
+  const p0=pid?prod(pid):null;
+  formModal({title:'Demander un avis',narrow:true,fields:[
+    {k:'art',label:'Article concerné',required:true,full:true,list:'plist',value:p0?p0.name:''},
+    {k:'qty',label:'Quantité',type:'number',min:1,step:1,required:true,full:true,value:1},
+    {k:'q',label:'Votre question',required:true,full:true,hint:'Par exemple : nappes tachées, en quoi les transformer ? Le service commercial et les collaborateurs peuvent répondre.'}],
+   submit:'Envoyer la demande',onSubmit:v=>{
+    if(!can('advise')){toast('Droit insuffisant.',1);return false}
+    const p=findProd(v.art);if(!p){toast('Article introuvable : choisissez un nom du catalogue.',1);return false}
+    const q=Math.round(v.qty);if(!(q>0)){toast('Quantité invalide.',1);return false}
+    addMove(p.id,'État',0,'','Avis demandé : ×'+q+' — '+v.q);
+    save();render();toast('Demande d’avis envoyée.');
+   }});
+}
+function answerAdvice(id){
+  if(!can('advise')){toast('Droit insuffisant.',1);return}
+  const m=S.moves.find(x=>x.id===id);if(!m)return;const p=prod(m.pid)||{name:'?'};
+  formModal({title:'Avis sur : '+p.name,narrow:true,fields:[
+    {k:'a',label:'Votre avis',required:true,full:true,hint:'Demande : '+m.note.replace(/^Avis demandé\s*:?\s*/,'')}],
+   submit:'Envoyer mon avis',onSubmit:v=>{
+    if(!can('advise')){toast('Droit insuffisant.',1);return false}
+    addMove(m.pid,'État',0,'','Avis réponse ['+id+'] — '+v.a);
+    save();render();toast('Avis envoyé.');
    }});
 }
 
@@ -1230,23 +1423,23 @@ function vDeposits(){
   const rs=S.rentals.filter(r=>depGroup(r)===ui.depTab).sort((a,b)=>b.start.localeCompare(a.start));
   const cnt=k=>S.rentals.filter(r=>depGroup(r)===k).length;
   const held=S.rentals.filter(r=>['held','back'].includes(depGroup(r))).reduce((a,r)=>a+cautionPaid(r)-(r.depositRetained||0),0);
-  return `<div class="kpis"><div class="kpi"><span>Cautions détenues</span><b>${F(held)}</b><small>à restituer ou retenir</small></div><div class="kpi"><span>Taux appliqué</span><b>${S.settings.depositRate} %</b><small>du total de location (paramétrable)</small></div></div>
+  return `<div class="kpis"><div class="kpi"><span>Cautions détenues</span><b>${F(held)}</b><small>à restituer ou retenir</small></div><div class="kpi"><span>Compléments à encaisser</span><b>${F(S.rentals.filter(r=>r.status==='Retournée'&&r.settled&&r.fees>0).reduce((a,r)=>a+Math.max(0,balance(r)),0))}</b><small>dommages au-delà de la caution</small></div><div class="kpi"><span>Taux appliqué</span><b>${S.settings.depositRate} %</b><small>du prix du matériel, transport exclu (paramétrable)</small></div></div>
   <div class="chips" style="margin-bottom:14px">${tabs.map(([k,l])=>`<button class="chip ${ui.depTab===k?'on':''}" data-act="depTab" data-v="${k}">${l}<small>${cnt(k)}</small></button>`).join('')}</div>
-  <section class="panel" style="padding:6px 8px"><div class="scroll">${rs.length?`<table><thead><tr><th>Commande</th><th>Client</th><th class="num">Caution due</th><th class="num">Encaissée</th><th class="num">Retenue</th><th class="num">À restituer</th><th>État</th></tr></thead><tbody>${rs.map(r=>`<tr data-act="openRental" data-id="${r.id}"><td><b>${esc(r.eventName)}</b><span class="sub">${esc(r.no)}</span></td><td>${esc((client(r.clientId)||{}).name||'—')}</td><td class="num">${F(r.deposit)}</td><td class="num">${F(cautionPaid(r))}</td><td class="num ${r.depositRetained?'neg':''}">${r.status==='Retournée'?F(r.depositRetained||0):'—'}</td><td class="num">${r.status==='Retournée'?F(cautionPaid(r)-(r.depositRetained||0)):'—'}</td><td>${depBadge(r)}</td></tr>`).join('')}</tbody></table>`:empty('Aucune caution dans cette catégorie')}</div></section>`;
+  <section class="panel" style="padding:6px 8px"><div class="scroll">${rs.length?`<table><thead><tr><th>Commande</th><th>Client</th><th class="num">Caution due</th><th class="num">Encaissée</th><th class="num">Retenue</th><th class="num">Reliquat à restituer</th><th class="num">Complément à payer</th><th>État</th></tr></thead><tbody>${rs.map(r=>`<tr data-act="openRental" data-id="${r.id}"><td><b>${esc(r.eventName)}</b><span class="sub">${esc(r.no)}</span></td><td>${esc((client(r.clientId)||{}).name||'—')}</td><td class="num">${F(r.deposit)}</td><td class="num">${F(cautionPaid(r))}</td><td class="num ${r.depositRetained?'neg':''}">${r.status==='Retournée'?F(r.depositRetained||0):'—'}</td><td class="num">${r.status==='Retournée'?F(Math.max(0,cautionPaid(r)-(r.depositRetained||0))):'—'}</td><td class="num ${r.settled&&balance(r)>0&&r.fees>0?'neg':''}">${r.status==='Retournée'&&r.settled&&r.fees>0?F(Math.max(0,balance(r)))+(balance(r)<=0?' (payé)':''):'—'}</td><td>${depBadge(r)}</td></tr>`).join('')}</tbody></table>`:empty('Aucune caution dans cette catégorie')}</div></section>`;
 }
 /* ============ règles & paramètres ============ */
 function vSettings(){
   return `<section class="panel" style="max-width:640px"><div class="panel-h"><h3>Règles métier paramétrables</h3><small>Réservé à l’administrateur</small></div>
   <form id="setform" class="form" novalidate>
-   <div class="field full"><label for="s_rate">Taux de caution (% du total de location)</label><input id="s_rate" name="rate" type="number" min="0" max="100" step="1" value="${S.settings.depositRate}"><div class="hint">S’applique aux nouvelles confirmations. Les cautions déjà fixées ne changent pas.</div></div>
+   <div class="field full"><label for="s_rate">Taux de caution (% du prix du matériel, transport non inclus)</label><input id="s_rate" name="rate" type="number" min="0" max="100" step="1" value="${S.settings.depositRate}"><div class="hint">S’applique aux nouvelles confirmations. Les cautions déjà fixées ne changent pas.</div></div>
    <div class="field full"><label for="s_hold">Durée maximale d’une pré-réservation (heures)</label><select id="s_hold" name="hold">${[1,2,3].map(h=>`<option value="${h}" ${h===S.settings.holdMaxHours?'selected':''}>${h} heure${h>1?'s':''}</option>`).join('')}</select><div class="hint">Sans avance dans ce délai, la commande passe en « Expirée » et le stock est libéré, sans pénalité.</div></div>
    <div class="modal-foot" style="grid-column:1/-1"><button class="btn primary" type="submit">Enregistrer les règles</button></div></form></section>
-  <section class="panel" style="max-width:640px;margin-top:18px"><h3>Cycle d’une commande</h3><ul class="steps"><li><b>Devis</b><span>aucun blocage de stock</span></li><li><b>Pré-réservation</b><span>blocage temporaire, expiration automatique</span></li><li><b>Confirmée</b><span>uniquement après enregistrement d’une avance</span></li><li><b>Sortie (en cours)</b><span>livraison validée, matériel préparé et caution encaissée</span></li><li><b>Retournée</b><span>retour contrôlé, pertes et casses consignées</span></li><li><b>Expirée / Annulée</b><span>stock libéré</span></li></ul></section>`;
+  <section class="panel" style="max-width:640px;margin-top:18px"><h3>Cycle d’une commande</h3><ul class="steps"><li><b>Devis</b><span>aucun blocage de stock</span></li><li><b>Pré-réservation</b><span>blocage temporaire, expiration automatique</span></li><li><b>Confirmée</b><span>uniquement après enregistrement d’une avance</span></li><li><b>Sortie (en cours)</b><span>livraison validée, matériel préparé, facture et caution payées en totalité (sauf dérogation du commercial)</span></li><li><b>Retournée</b><span>retour reçu par le stock, puis réglé par le commercial (casse, retard, caution)</span></li><li><b>Expirée / Annulée</b><span>stock libéré</span></li></ul></section>`;
 }
 /* ============ équipe ============ */
 function vTeam(){
   const mods=NAV.filter(n=>!n.cta);
-  const acts=[['Créer une commande, pré-réserver',ACT_ROLES.rent],['Enregistrer paiements et cautions',ACT_ROLES.pay],['Préparer le matériel',ACT_ROLES.prepare],['Valider une livraison (sortie)',ACT_ROLES.deliver],['Enregistrer un retour',ACT_ROLES.ret],['Changer l’état d’un article',ACT_ROLES.stateEdit],['Ajuster le stock, créer un article',ACT_ROLES.stock],['Restituer / retenir une caution',ACT_ROLES.deposit],['Voir les montants',ACT_ROLES.money]];
+  const acts=[['Créer une commande, pré-réserver',ACT_ROLES.rent],['Enregistrer paiements et cautions',ACT_ROLES.pay],['Préparer le matériel',ACT_ROLES.prepare],['Valider une livraison (sortie)',ACT_ROLES.deliver],['Réception du retour (comptage et état)',ACT_ROLES.ret],['Régler le retour (retard, casse, caution)',ACT_ROLES.settle],['Noter la date de dépôt par le client',ACT_ROLES.retDate],['Autoriser une livraison malgré un paiement incomplet',ACT_ROLES.waive],['Changer l’état d’un article (hors remise en stock)',ACT_ROLES.stateEdit],['Remise en stock, ajustement du stock, mise au rebut',ACT_ROLES.restock],['Créer ou modifier une fiche article',ACT_ROLES.create],['Notifier une transformation',ACT_ROLES.transform],['Signaler au stock (prêt à remettre ou rebut)',ACT_ROLES.signal],['Restituer / retenir une caution',ACT_ROLES.deposit],['Voir les montants',ACT_ROLES.money]];
   return `<div class="bar-row"><span class="grow"></span><button class="btn primary" data-act="newStaff">${ic('plus',16)} Ajouter un membre</button></div>
   <section class="panel" style="padding:6px 8px"><div class="scroll"><table><thead><tr><th>Nom</th><th>Rôle</th><th>Téléphone</th><th>État</th><th></th></tr></thead><tbody>${S.staff.map(s=>`<tr><td><b>${esc(s.name)}</b></td><td>${esc(ROLES[s.role])}</td><td>${esc(s.phone||'—')}</td><td><span class="badge ${s.active?'b-ok':'b-mute'}">${s.active?'Actif':'Désactivé'}</span></td><td class="num"><button class="btn sm" data-act="editStaff" data-id="${s.id}">Modifier</button></td></tr>`).join('')}</tbody></table></div></section>
   <section class="panel" style="margin-top:20px"><div class="panel-h"><h3>Qui peut faire quoi</h3><small>Changez d’utilisateur en haut à droite pour tester</small></div><div class="scroll"><table><thead><tr><th>Module ou action</th>${Object.values(ROLES).map(r=>`<th style="text-align:center">${esc(r)}</th>`).join('')}</tr></thead><tbody>${[...mods,...acts.map(([label,roles])=>({label,roles}))].map(m=>`<tr><td>${esc(m.label)}</td>${Object.keys(ROLES).map(k=>`<td style="text-align:center">${m.roles.includes(k)?`<span class="pos">${ic('check',16)}</span>`:'<span class="hint">—</span>'}</td>`).join('')}</tr>`).join('')}</tbody></table></div></section>`;
@@ -1384,7 +1577,7 @@ const ACT={
   openRental:el=>showRental(el.dataset.id),openProduct:el=>showProduct(el.dataset.id),openClient:el=>showClient(el.dataset.id),
   rstat:el=>{ui.rstat=el.dataset.v;render()},
   holdForm:el=>holdForm(el.dataset.id),advanceForm:el=>advanceForm(el.dataset.id),prepForm:el=>prepForm(el.dataset.id),deliver:el=>deliver(el.dataset.id),
-  showReturn:el=>showReturn(el.dataset.id),addPay:el=>addPay(el.dataset.id,el.dataset.kind),closeDep:el=>closeDep(el.dataset.id),
+  showReturn:el=>showReturn(el.dataset.id),noteReturnDate:el=>noteReturnDate(el.dataset.id),settleForm:el=>settleForm(el.dataset.id),waiveForm:el=>waiveForm(el.dataset.id),addPay:el=>addPay(el.dataset.id,el.dataset.kind),closeDep:el=>closeDep(el.dataset.id),
   regul:el=>regul(el.dataset.id),cancelRental:el=>cancelRental(el.dataset.id),
   printDoc:el=>printDoc(el.dataset.id,el.dataset.kind),printPage:()=>{try{window.print()}catch(e){toast('L’impression n’est pas disponible dans cet aperçu.',1)}},
   editDraft:el=>{const r=byId(el.dataset.id);ui.draft=Object.assign(newDraft(),{editId:r.id,clientId:r.clientId,eventName:r.eventName,eventType:r.eventType,source:r.source||'Téléphone',start:r.start<TODAY?TODAY:r.start,end:r.end<TODAY?TODAY:r.end,lines:r.lines.map(l=>({pid:l.pid,qty:l.qty})),delivery:r.delivery,discount:r.discount,notes:r.notes});closeModal();go('pos')},
@@ -1408,7 +1601,7 @@ const ACT={
   receivePO:el=>receivePO(el.dataset.id),
   period:el=>{ui.period=el.dataset.v;render()},
   newStaff:()=>openModal('Ajouter un collaborateur',`<p>Les comptes sont créés dans Supabase pour des raisons de sécurité :</p><ol><li>Ouvrez <b>Supabase → Authentication → Users → Add user</b> et saisissez l’e-mail et un mot de passe.</li><li>Le collaborateur apparaît ici avec le rôle <b>Livreur</b> (aucun accès aux montants).</li><li>Cliquez sur <b>Actualiser les données</b>, puis <b>Modifier</b> pour lui donner le bon rôle.</li></ol><div class="modal-foot" style="display:flex;justify-content:flex-end"><button class="btn primary" data-act="closeModal">Compris</button></div>`,{narrow:true,focus:false}),editStaff:el=>staffForm(el.dataset.id),
-  newRebut:()=>rebutForm(),theme:()=>toggleTheme(),
+  newRebut:()=>rebutForm(),newAdvice:()=>adviceForm(),answerAdvice:el=>answerAdvice(el.dataset.id),newTransform:()=>transformForm(),newSignal:()=>signalForm(),signalForm:el=>signalForm(el.dataset.id),treatSignal:el=>el.dataset.v==='rebut'?rebutForm(el.dataset.id):stateForm(el.dataset.id),theme:()=>toggleTheme(),
   logout:()=>signOutUI(''),
   refresh:()=>{if(syncing||dirty){toast('Enregistrement en cours, réessayez dans un instant.',1);return}reloadAll().then(()=>toast('Données actualisées.'))},
 };
@@ -1420,6 +1613,8 @@ const INP={
   pq:el=>{ui.draft.q=el.value;drawTiles()},
   cdate:el=>{ui.cashDate=el.value||TODAY;render()},
   qty:(el,ev)=>{if(ev.type!=='change')return;setQty(el.dataset.id,Math.max(0,Math.round(num(el.value))))},
+  settle:el=>{const f=$('#sform');if(!f)return;const ld=Math.max(0,diff(f.dataset.end,el.value||f.dataset.end)),L=Math.round(ld*num(f.dataset.rate));$('#slate').value=L;$('#slh').textContent=ld+' jour(s) de retard';const C=num(f.dataset.d)+L,cp=num(f.dataset.cp),ret=Math.min(cp,C);$('#sret').value=ret;$('#sfees').value=Math.max(0,C-ret)},
+  settle2:el=>{const f=$('#sform');if(!f)return;const C=num(f.dataset.d)+Math.max(0,num(el.value)),cp=num(f.dataset.cp),ret=Math.min(cp,C);$('#sret').value=ret;$('#sfees').value=Math.max(0,C-ret)},
   lost:(el)=>{const f=$('#rret'),g=$('#rfees'),form=$('#rform');if(!f||!g||!form)return;let t=0;$$('input[data-in=lost]').forEach(i=>{const m=/_(.+)$/.exec(i.name);const p=m&&prod(m[1]);if(p)t+=Math.max(0,num(i.value))*repl(p)});const cp=num(form.dataset.cp);f.value=Math.min(t,cp);g.value=Math.max(0,t-cp)},
   d:(el,ev)=>{
     const d=ui.draft,k=el.dataset.k;
