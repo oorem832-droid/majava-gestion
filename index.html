@@ -699,6 +699,11 @@ function pendingSignals(){
   });
   return out.filter(x=>x.p).sort((a,b)=>ord(b.m,a.m));
 }
+/* ---- annulation (article 10) : plus de 72 h avant la livraison = remboursement total, sinon 50 % de la commande ---- */
+const CANCEL_HOURS=72,CANCEL_KEEP=50;
+const hoursBefore=r=>{const m=/^(\d+)h/.exec(r.delivSlot||''),hh=m?m[1].padStart(2,'0'):'07';return (new Date(r.start+'T'+hh+':00:00')-new Date())/36e5};
+const refundSuggest=r=>{const h=hoursBefore(r),full=h>CANCEL_HOURS,p=Math.max(0,paid(r));return {hours:h,full,loc:full?p:Math.round(p*(100-CANCEL_KEEP)/100),caut:Math.max(0,cautionPaid(r))}};
+const payLabel=p=>p.refund?(p.kind==='caution'?'Remboursement caution':'Remboursement annulation'):p.kind==='caution'?'Caution':'Location';
 
 /* ============ navigation ============ */
 function allowedViews(){return NAV.filter(n=>n.roles.includes(me().role)).map(n=>n.id)}
@@ -1063,7 +1068,7 @@ function printSpecial(id,kind){
   const r=S.rentals.find(x=>x.id===id),c=client(r.clientId)||{},nd=nDays(r);
   if((kind==='fr'||kind==='fc')&&!can('money')){toast('Document financier : accès réservé.',1);return}
   const title=kind==='br'?'Bon de récupération':kind==='fc'?'Facture complémentaire — coûts de dommages':'Fiche de restitution de caution';
-  const head=`<div style="display:flex;justify-content:space-between;align-items:flex-start"><div><h1 style="font-family:'Cormorant Garamond',serif;letter-spacing:.14em">MAJAVA</h1><div>Location événementielle<br>Showroom Yopougon Complexe – Abidjan<br>+225 27 22 48 05 10 · +225 07 58 00 58 52<br>my@majavaci.com</div></div><div style="text-align:right"><h1 style="font-size:1.6rem">${title}</h1><div>N° ${esc(r.no)}<br>Date : ${fd(TODAY,1)}</div></div></div>
+  const head=`<div style="display:flex;justify-content:space-between;align-items:flex-start"><div><h1 style="font-family:'Cormorant Garamond',serif;letter-spacing:.14em">MAJAVA</h1><div>Location événementielle<br>Cocody Val Doyen, 01 BP 2363 Abidjan 01<br>+225 27 22 48 05 10 · +225 07 58 00 58 52<br>my@majavaci.com</div></div><div style="text-align:right"><h1 style="font-size:1.6rem">${title}</h1><div>N° ${esc(r.no)}<br>Date : ${fd(TODAY,1)}</div></div></div>
   <div class="meta"><div><b>Client</b><br>${esc(c.name||'')}<br>${esc(c.phone||'')}<br>${esc(c.address||'')}</div><div style="text-align:right"><b>Événement</b><br>${esc(r.eventName)}<br>Du ${fd(r.start,1)} au ${fd(r.end,1)} (${nd} j)</div></div>`;
   const cm=x=>{const t=(x.note||'').split(' — ')[1]||'';return t};
   const lineInc=pid=>r.incidents.filter(x=>x.pid===pid&&['Perte','Endommagé','Entretien','Remarque'].includes(x.type));
@@ -1100,7 +1105,7 @@ function printDoc(id,kind){
   const r=S.rentals.find(x=>x.id===id),c=client(r.clientId)||{},nd=nDays(r);
   const title=kind==='bl'?'Bon de livraison':kind==='facture'?'Facture':'Devis';
   const rows=r.lines.map(l=>{const p=prod(l.pid);return kind==='bl'?`<tr><td>${esc(p.name)}</td><td style="text-align:right">${l.qty}</td><td style="text-align:center">☐ RAS  ☐ Anomalie</td><td>&nbsp;</td></tr>`:`<tr><td>${esc(p.name)}</td><td style="text-align:right">${l.qty}</td><td style="text-align:right">${F(l.price)}</td><td style="text-align:right">${F(l.qty*l.price*nd)}</td></tr>`}).join('');
-  $('#print').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start"><div><h1 style="font-family:'Cormorant Garamond',serif;letter-spacing:.14em">MAJAVA</h1><div>Location événementielle<br>Showroom Yopougon Complexe – Abidjan<br>+225 27 22 48 05 10 · +225 07 58 00 58 52<br>my@majavaci.com</div></div><div style="text-align:right"><h1 style="font-size:1.6rem">${title}</h1><div>N° ${esc(r.no)}<br>Date : ${fd(TODAY,1)}</div></div></div>
+  $('#print').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start"><div><h1 style="font-family:'Cormorant Garamond',serif;letter-spacing:.14em">MAJAVA</h1><div>Location événementielle<br>Cocody Val Doyen, 01 BP 2363 Abidjan 01<br>+225 27 22 48 05 10 · +225 07 58 00 58 52<br>my@majavaci.com</div></div><div style="text-align:right"><h1 style="font-size:1.6rem">${title}</h1><div>N° ${esc(r.no)}<br>Date : ${fd(TODAY,1)}</div></div></div>
   <div class="meta"><div><b>Client</b><br>${esc(c.name||'')}<br>${esc(c.phone||'')}<br>${esc(c.address||'')}</div><div style="text-align:right"><b>Événement</b><br>${esc(r.eventName)}<br>Du ${fd(r.start,1)} au ${fd(r.end,1)} (${nd} j)${kind==='bl'?(r.delivSlot?'<br>Livraison : '+esc(r.delivSlot):''):(slotLine(r)?'<br>'+esc(slotLine(r)).replace(' · ','<br>'):'')}</div></div>
   <table><thead>${kind==='bl'?'<tr><th style="text-align:left">Article</th><th style="text-align:right">Qté livrée</th><th>État à la livraison</th><th style="text-align:left">Commentaire</th></tr>':'<tr><th style="text-align:left">Article</th><th style="text-align:right">Qté</th><th style="text-align:right">Prix/jour</th><th style="text-align:right">Total</th></tr>'}</thead><tbody>${rows}</tbody></table>
   ${kind==='bl'?'<div class="sig"><div>Remis par (MAJAVA)</div><div>Reçu par le client — nom et signature</div></div><p style="font-size:.85rem;margin-top:24px">Le matériel manquant ou détérioré sera facturé au prix de remplacement.</p>':`<div style="margin-left:auto;width:360px">${row('Articles ('+nd+' j)',F(subtotal(r)))}${row('Transport (livraison & installation)',F(r.delivery||0))}${r.fees?row('Frais de casse / perte',F(r.fees)):''}${r.discount?row('Remise','− '+F(r.discount)):''}${row('<b>Total facture</b>','<b>'+F(total(r))+'</b>','border-top:1px solid #222;margin-top:4px;padding-top:4px')}${row('Caution ('+S.settings.depositRate+' % des articles, remboursable)',F(cautionDue(r)))}${row('Total à payer','<b>'+F(toPay(r))+'</b>','font-size:1.25rem;font-weight:800;border-top:2px solid #222;margin-top:6px;padding-top:6px')}${kind==='facture'?row('Déjà payé',F(paid(r)+cautionPaid(r)))+row('<b>Reste à payer</b>','<b>'+F(restToPay(r))+'</b>'):''}</div><p style="font-size:.85rem;margin-top:14px">${kind==='devis'?'Pas d’avance : la réservation du matériel et des créneaux horaires est effective après paiement total (articles, transport et caution).':'Facture acquittée à réception du paiement total.'}</p><p style="font-size:.85rem;margin-top:18px">Merci de votre confiance. Votre satisfaction est notre meilleure publicité !</p>${condHtml()}`}`+legalHtml();
@@ -1439,10 +1444,10 @@ function vCash(){
   const bm=cashByMethod(list);
   return `<div class="bar-row noprint"><div class="field" style="min-width:180px"><label for="cdate">Journée</label><input id="cdate" type="date" value="${d}" max="${TODAY}" data-in="cdate"></div><span class="grow"></span><button class="btn" data-act="csvCash">${ic('copy',16)} Export CSV</button><button class="btn primary" data-act="printPage">${ic('print',16)} Imprimer la feuille</button></div>
   <div class="kpis"><div class="kpi"><span>Total encaissé</span><b>${F(tot)}</b><small>${list.length} opération${list.length>1?'s':''}</small></div><div class="kpi"><span>Locations (paiements des commandes)</span><b>${F(loc)}</b></div><div class="kpi"><span>Cautions reçues</span><b>${F(cau)}</b><small>remboursables</small></div><div class="kpi"><span>Cautions restituées</span><b>${F(S.rentals.filter(r=>r.depositClosedOn===d).reduce((a,r)=>a+(r.depositBack||0),0))}</b><small>sorties de caisse</small></div></div>
-  <div class="cols"><section class="panel"><div class="panel-h"><h3>Opérations du ${fd(d,1)}</h3><small>Saisies manuellement (paiements hors plateforme en V1)</small></div>${list.length?`<div class="scroll"><table><thead><tr><th>Heure</th><th>Commande</th><th>Nature</th><th>Moyen</th><th class="num">Montant</th><th>Enregistré par</th></tr></thead><tbody>${list.map(({r,p})=>`<tr data-act="openRental" data-id="${r.id}"><td>${esc((p.at||'').slice(11,16)||'—')}</td><td><b>${esc(r.eventName)}</b><span class="sub">${esc(r.no)}</span></td><td>${p.kind==='caution'?'Caution':'Location'}</td><td>${esc(p.method)}</td><td class="num">${F(p.amount)}</td><td>${esc(staffName(p.by))}</td></tr>`).join('')}</tbody></table></div>`:empty('Aucune opération ce jour','Les paiements enregistrés sur les commandes apparaissent ici automatiquement.')}</section>
+  <div class="cols"><section class="panel"><div class="panel-h"><h3>Opérations du ${fd(d,1)}</h3><small>Saisies manuellement (paiements hors plateforme en V1)</small></div>${list.length?`<div class="scroll"><table><thead><tr><th>Heure</th><th>Commande</th><th>Nature</th><th>Moyen</th><th class="num">Montant</th><th>Enregistré par</th></tr></thead><tbody>${list.map(({r,p})=>`<tr data-act="openRental" data-id="${r.id}"><td>${esc((p.at||'').slice(11,16)||'—')}</td><td><b>${esc(r.eventName)}</b><span class="sub">${esc(r.no)}</span></td><td>${esc(payLabel(p))}</td><td>${esc(p.method)}</td><td class="num">${F(p.amount)}</td><td>${esc(staffName(p.by))}</td></tr>`).join('')}</tbody></table></div>`:empty('Aucune opération ce jour','Les paiements enregistrés sur les commandes apparaissent ici automatiquement.')}</section>
   <section class="panel"><h3>Total par moyen de paiement</h3>${Object.entries(bm).map(([k,v])=>`<div class="hb" style="grid-template-columns:1fr auto"><span>${esc(k)}</span><b>${F(v)}</b></div>`).join('')}<div class="hb" style="grid-template-columns:1fr auto;border-top:2px solid var(--ink);margin-top:6px;padding-top:8px"><b>Total</b><b>${F(tot)}</b></div><p class="hint" style="margin-bottom:0">Pointez ce total avec l’argent en caisse et les relevés Orange Money, MTN et Wave avant clôture.</p></section></div>`;
 }
-function csvCashRows(){return [['Heure','N° commande','Événement','Nature','Moyen','Montant (F)','Enregistré par'],...cashList(ui.cashDate).map(({r,p})=>[(p.at||'').slice(11,16),r.no,r.eventName,p.kind==='caution'?'Caution':'Location',p.method,p.amount,staffName(p.by)])]}
+function csvCashRows(){return [['Heure','N° commande','Événement','Nature','Moyen','Montant (F)','Enregistré par'],...cashList(ui.cashDate).map(({r,p})=>[(p.at||'').slice(11,16),r.no,r.eventName,payLabel(p),p.method,p.amount,staffName(p.by)])]}
 
 /* ============ suivi des cautions ============ */
 function depGroup(r){
@@ -1598,10 +1603,24 @@ function regul(id){
   });
 }
 function cancelRental(id){
-  const r=byId(id),pay=paid(r)+cautionPaid(r);
-  confirmDialog(r.status==='Pré-réservation'?'Libérer le stock ?':'Annuler la commande ?',(r.status==='Pré-réservation'?'Les articles redeviennent disponibles, sans pénalité.':'Les articles redeviennent disponibles.')+(pay?' Des paiements ('+F(pay)+') sont enregistrés : leur remboursement est à traiter selon vos conditions.':''),'Confirmer',()=>{
-    r.status='Annulée';r.holdUntil=null;r.cancelledAt=nowLocal();r.cancelledBy=S.me;save();render();toast('Commande annulée.');showRental(id);
-  });
+  const r=byId(id),pay=paid(r),cau=cautionPaid(r),isHold=r.status==='Pré-réservation';
+  const done=()=>{r.status='Annulée';r.holdUntil=null;r.cancelledAt=nowLocal();r.cancelledBy=S.me;save();render();toast('Commande annulée.');showRental(id)};
+  if(!(pay>0||cau>0)){confirmDialog(isHold?'Libérer le stock ?':'Annuler la commande ?','Les articles redeviennent disponibles.','Confirmer',done);return}
+  const s=refundSuggest(r),h=Math.floor(Math.abs(s.hours));
+  const rule=s.full?'Annulation faite plus de '+CANCEL_HOURS+' h avant la livraison ('+(s.hours>0?'dans '+h+' h':'')+') : remboursement total proposé (article 10).':'Annulation faite moins de '+CANCEL_HOURS+' h avant la livraison'+(s.hours>0?' (dans '+h+' h)':' (date dépassée)')+' : '+(100-CANCEL_KEEP)+' % de la commande est restitué (article 10). La caution est restituée en totalité.';
+  formModal({title:'Annuler la commande',narrow:true,fields:[
+    {k:'loc',label:'Remboursement de la commande (F)',type:'number',value:s.loc,min:0,full:true,hint:rule+' Payé : '+F(pay)+'. Vous pouvez modifier le montant.'},
+    {k:'caut',label:'Restitution de la caution (F)',type:'number',value:s.caut,min:0,full:true,hint:'Caution reçue : '+F(cau)},
+    {k:'method',label:'Moyen de remboursement',type:'select',options:PAY,full:true},
+    {k:'note',label:'Motif ou remarque (facultatif)',full:true}
+  ],submit:'Annuler et enregistrer',onSubmit:v=>{
+    const L=Math.round(v.loc||0),C=Math.round(v.caut||0);
+    if(L<0||C<0||L>pay||C>cau){toast('Les montants ne peuvent pas dépasser ce qui a été payé ('+F(pay)+' et '+F(cau)+').',1);return false}
+    const mk=(amt,kind)=>({id:uid('y'),date:TODAY,at:nowLocal(),amount:-amt,method:v.method,by:S.me,kind,refund:true,note:v.note||''});
+    if(L>0)r.payments.push(mk(L,'location'));
+    if(C>0)r.payments.push(mk(C,'caution'));
+    done();
+  }});
 }
 const ACT={
   go:el=>go(el.dataset.v),
