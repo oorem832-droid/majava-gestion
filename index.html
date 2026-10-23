@@ -497,8 +497,8 @@ const TBL={
   from:r=>({id:r.id,name:r.name,type:r.client_type,phone:nz(r.phone),email:nz(r.email),address:nz(r.address),notes:nz(r.notes)})},
  suppliers:{to:s=>({id:s.id,name:s.name,contact:s.contact,phone:s.phone,email:s.email,category:s.category,city:s.city,notes:s.notes}),
   from:r=>({id:r.id,name:r.name,contact:nz(r.contact),phone:nz(r.phone),email:nz(r.email),category:nz(r.category),city:nz(r.city),notes:nz(r.notes)})},
- rentals:{to:r=>({id:r.id,rental_no:r.no,quote_no:r.quoteNo||null,client_id:r.clientId,event_name:r.eventName,event_type:r.eventType,source:r.source||null,start_date:r.start,end_date:r.end,status:r.status,lines:r.lines,delivery:r.delivery,discount:r.discount,fees:r.fees||0,payments:r.payments,lost:r.lost||{},incidents:r.incidents||[],notes:r.notes||'',created:r.created||null,created_by:nn(r.by),hold_until:nn(r.holdUntil),hold_by:nn(r.holdBy),expired_at:nn(r.expiredAt),prepared:!!r.prepared,prepared_at:nn(r.preparedAt),prepared_by:nn(r.preparedBy),out_at:nn(r.outAt),out_by:nn(r.outBy),returned_at:nn(r.returnedAt),returned_by:nn(r.returnedBy),regul:!!r.regul,cancelled_at:nn(r.cancelledAt),cancelled_by:nn(r.cancelledBy),deposit:r.deposit||0,deposit_state:nn(r.depositState),deposit_retained:r.depositRetained||0,deposit_closed_on:nn(r.depositClosedOn),deposit_back:r.depositBack||0,return_date:nn(r.returnDate),late_days:r.lateDays||0,late_fee:r.lateFee||0,settled:!!r.settled,settled_at:nn(r.settledAt),settled_by:nn(r.settledBy),exception_note:nn(r.exceptionNote),exception_by:nn(r.exceptionBy),exception_at:nn(r.exceptionAt),deliv_slot:nn(r.delivSlot),pick_slot:nn(r.pickSlot),bill_days:r.billDays>0?r.billDays:null}),
-  from:r=>({id:r.id,no:r.rental_no,quoteNo:nz(r.quote_no),clientId:r.client_id,eventName:r.event_name,eventType:nz(r.event_type),source:nz(r.source),start:r.start_date,end:r.end_date,status:r.status,lines:r.lines||[],delivery:+r.delivery,discount:+r.discount,fees:+r.fees,payments:r.payments||[],lost:r.lost||{},incidents:r.incidents||[],notes:nz(r.notes),created:nz(r.created),by:nz(r.created_by),holdUntil:r.hold_until||null,holdBy:nz(r.hold_by),expiredAt:r.expired_at||null,prepared:!!r.prepared,preparedAt:r.prepared_at||null,preparedBy:r.prepared_by||null,outAt:r.out_at||null,outBy:r.out_by||null,returnedAt:r.returned_at||null,returnedBy:r.returned_by||null,regul:!!r.regul,cancelledAt:r.cancelled_at||null,cancelledBy:r.cancelled_by||null,deposit:+r.deposit,depositState:r.deposit_state||null,depositRetained:+r.deposit_retained,depositClosedOn:r.deposit_closed_on||null,depositBack:+r.deposit_back,returnDate:r.return_date||null,lateDays:+r.late_days||0,lateFee:+r.late_fee||0,settled:!!r.settled,settledAt:r.settled_at||null,settledBy:r.settled_by||null,exceptionNote:r.exception_note||null,exceptionBy:r.exception_by||null,exceptionAt:r.exception_at||null,delivSlot:r.deliv_slot||'',pickSlot:r.pick_slot||'',billDays:r.bill_days>0?+r.bill_days:0,moneyHidden:r.fully_paid!==undefined,fullyPaid:r.fully_paid===true})},
+ rentals:{to:r=>({id:r.id,rental_no:r.no,quote_no:r.quoteNo||null,addons:r.addons||[],client_id:r.clientId,event_name:r.eventName,event_type:r.eventType,source:r.source||null,start_date:r.start,end_date:r.end,status:r.status,lines:r.lines,delivery:r.delivery,discount:r.discount,fees:r.fees||0,payments:r.payments,lost:r.lost||{},incidents:r.incidents||[],notes:r.notes||'',created:r.created||null,created_by:nn(r.by),hold_until:nn(r.holdUntil),hold_by:nn(r.holdBy),expired_at:nn(r.expiredAt),prepared:!!r.prepared,prepared_at:nn(r.preparedAt),prepared_by:nn(r.preparedBy),out_at:nn(r.outAt),out_by:nn(r.outBy),returned_at:nn(r.returnedAt),returned_by:nn(r.returnedBy),regul:!!r.regul,cancelled_at:nn(r.cancelledAt),cancelled_by:nn(r.cancelledBy),deposit:r.deposit||0,deposit_state:nn(r.depositState),deposit_retained:r.depositRetained||0,deposit_closed_on:nn(r.depositClosedOn),deposit_back:r.depositBack||0,return_date:nn(r.returnDate),late_days:r.lateDays||0,late_fee:r.lateFee||0,settled:!!r.settled,settled_at:nn(r.settledAt),settled_by:nn(r.settledBy),exception_note:nn(r.exceptionNote),exception_by:nn(r.exceptionBy),exception_at:nn(r.exceptionAt),deliv_slot:nn(r.delivSlot),pick_slot:nn(r.pickSlot),bill_days:r.billDays>0?r.billDays:null}),
+  from:r=>({id:r.id,no:r.rental_no,quoteNo:nz(r.quote_no),addons:r.addons||[],clientId:r.client_id,eventName:r.event_name,eventType:nz(r.event_type),source:nz(r.source),start:r.start_date,end:r.end_date,status:r.status,lines:r.lines||[],delivery:+r.delivery,discount:+r.discount,fees:+r.fees,payments:r.payments||[],lost:r.lost||{},incidents:r.incidents||[],notes:nz(r.notes),created:nz(r.created),by:nz(r.created_by),holdUntil:r.hold_until||null,holdBy:nz(r.hold_by),expiredAt:r.expired_at||null,prepared:!!r.prepared,preparedAt:r.prepared_at||null,preparedBy:r.prepared_by||null,outAt:r.out_at||null,outBy:r.out_by||null,returnedAt:r.returned_at||null,returnedBy:r.returned_by||null,regul:!!r.regul,cancelledAt:r.cancelled_at||null,cancelledBy:r.cancelled_by||null,deposit:+r.deposit,depositState:r.deposit_state||null,depositRetained:+r.deposit_retained,depositClosedOn:r.deposit_closed_on||null,depositBack:+r.deposit_back,returnDate:r.return_date||null,lateDays:+r.late_days||0,lateFee:+r.late_fee||0,settled:!!r.settled,settledAt:r.settled_at||null,settledBy:r.settled_by||null,exceptionNote:r.exception_note||null,exceptionBy:r.exception_by||null,exceptionAt:r.exception_at||null,delivSlot:r.deliv_slot||'',pickSlot:r.pick_slot||'',billDays:r.bill_days>0?+r.bill_days:0,moneyHidden:r.fully_paid!==undefined,fullyPaid:r.fully_paid===true})},
  purchases:{to:p=>({id:p.id,po_no:p.no,supplier_id:p.supplierId,order_date:p.date,status:p.status,lines:p.lines,created_by:p.by||null,received_on:p.receivedOn||null}),
   from:r=>({id:r.id,no:r.po_no,supplierId:r.supplier_id,date:r.order_date,status:r.status,lines:r.lines||[],by:nz(r.created_by),receivedOn:r.received_on||undefined})},
  moves:{to:m=>({id:m.id,move_date:m.date,at:m.at||null,seq:m.seq,product_id:m.pid,move_type:m.type,qty:m.qty,ref:m.ref||'',note:m.note||'',created_by:m.by||null}),
@@ -647,9 +647,9 @@ function csvModal(title,rows){
 const empty=(t,s)=>`<div class="empty"><b>${esc(t)}</b>${esc(s||'')}</div>`;
 
 /* ===== numérotation : devis DEV-AAAA-NNNN → facture définitive NNNN-MM-AAAA à la confirmation ===== */
-const INV_RE=/^(\d{4,})-\d{2}-\d{4}$/;
+const INV_RE=/^(\d{4,})-\d{2}-(?:\d{2}|\d{4})$/;
 const isInvoiceNo=n=>INV_RE.test(String(n||''));
-function nextInvoiceNo(){const mx=S.rentals.reduce((m,r)=>{const k=INV_RE.exec(String(r.no||''));return Math.max(m,k?parseInt(k[1],10):0)},0);return String(mx+1).padStart(4,'0')+'-'+TODAY.slice(5,7)+'-'+TODAY.slice(0,4)}
+function nextInvoiceNo(){const mx=S.rentals.reduce((m,r)=>{const k=INV_RE.exec(String(r.no||''));return Math.max(m,k?parseInt(k[1],10):0)},0);return String(mx+1).padStart(4,'0')+'-'+TODAY.slice(5,7)+'-'+TODAY.slice(2,4)}
 function nextQuoteNo(){const y=TODAY.slice(0,4),re=new RegExp('^DEV-'+y+'-(\\d+)$');const mx=S.rentals.reduce((m,r)=>{let v=m;[r.no,r.quoteNo].forEach(x=>{const k=re.exec(String(x||''));if(k)v=Math.max(v,parseInt(k[1],10))});return v},0);return 'DEV-'+y+'-'+String(mx+1).padStart(4,'0')}
 function giveInvoice(r){if(!isInvoiceNo(r.no)){r.quoteNo=r.quoteNo||r.no;r.no=nextInvoiceNo()}}
 /* ============ calculs & règles métier ============ */
@@ -959,6 +959,7 @@ function stepsHtml(r){
   if(r.holdUntil)e.push([r.status==='Expirée'?'Pré-réservation expirée':'Pré-réservation jusqu’à',r.holdUntil,'']);
   const adv=r.payments.find(p=>p.kind!=='caution');
   if(adv&&live(r))e.push(['Paiement enregistré',adv.at||adv.date,staffName(adv.by)]);
+  (r.addons||[]).forEach((a,i)=>e.push(['Articles ajoutés · facture complémentaire n° '+(i+1)+' (même n° de facture)',a.at,staffName(a.by)]));
   if(r.prepared)e.push(['Préparée et vérifiée',r.preparedAt,staffName(r.preparedBy)]);
   if(r.outAt)e.push(['Livrée (sortie du stock)',r.outAt,staffName(r.outBy)]);
   if(r.exceptionNote)e.push(['Dérogation de paiement : '+r.exceptionNote,r.exceptionAt,staffName(r.exceptionBy)]);
@@ -989,6 +990,8 @@ function showRental(id){
   if(r.status==='Retournée'&&r.settled&&r.fees>0&&balance(r)>0&&can('pay'))b.push(`<button class="btn primary" data-act="addPay" data-id="${r.id}" data-kind="location">${ic('wallet',16)} Encaisser le complément (${F(balance(r))})</button>`);
   if((r.status==='Confirmée'||r.status==='Sortie')&&balance(r)>0&&can('pay'))b.push(`<button class="btn" data-act="addPay" data-id="${r.id}" data-kind="location">${ic('wallet',16)} Encaisser un paiement</button>`);
   if((r.status==='Confirmée'||r.status==='Sortie')&&r.deposit&&cautionPaid(r)<r.deposit&&can('deposit'))b.push(`<button class="btn" data-act="addPay" data-id="${r.id}" data-kind="caution">${ic('lock',16)} Encaisser la caution (${F(r.deposit-cautionPaid(r))})</button>`);
+  if(r.status==='Confirmée'&&can('rent'))b.push(`<button class="btn" data-act="addItems" data-id="${r.id}">${ic('plus',16)} Ajouter des articles (facture complémentaire)</button>`);
+  (r.addons||[]).forEach((a,i)=>{if(can('money'))b.push(`<button class="btn" data-act="printDoc" data-id="${r.id}" data-kind="fa:${a.id}">${ic('print',16)} Facture complémentaire n° ${i+1}</button>`)});
   if(r.status==='Retournée'&&r.settled&&r.fees>0&&can('money'))b.push(`<button class="btn" data-act="printDoc" data-id="${r.id}" data-kind="fc">${ic('print',16)} Facture complémentaire (dommages)</button>`);
   if(r.status==='Retournée'&&r.settled&&r.deposit&&!r.depositClosedOn&&can('deposit'))b.push(`<button class="btn primary" data-act="closeDep" data-id="${r.id}">${ic('lock',16)} Clôturer la caution (restituer ${F(r.deposit-(r.depositRetained||0))})</button>`);
   if(can('money')&&(live(r)&&r.status!=='Retournée'||r.status==='Retournée'))b.push(`<button class="btn" data-act="printDoc" data-id="${r.id}" data-kind="facture">${ic('print',16)} Facture</button>`);
@@ -1174,6 +1177,41 @@ function sendDocForm(id,kind){
    ${c.phone?'':'<p class="hint">Aucun téléphone enregistré pour ce client : WhatsApp s’ouvrira sans destinataire.</p>'}`,{narrow:true,focus:false});
 }
 
+/* ============ articles ajoutés après confirmation : facture complémentaire (même numéro de facture) ============ */
+const addonTotal=(r,a)=>a.lines.reduce((s,l)=>s+l.qty*l.price,0)*nDays(r);
+function addItemsForm(id){
+  const r=S.rentals.find(x=>x.id===id);if(!r||r.status!=='Confirmée'||!can('rent'))return;
+  const ps=S.products.filter(p=>p.price>0&&usable(p)>0).sort((a,b)=>(a.cat+a.name).localeCompare(b.cat+b.name,'fr'));
+  const opts=[['','— Aucun —'],...ps.map(p=>[p.id,p.cat+' · '+p.name+' ('+F(p.price)+')'])];
+  const fields=[];for(let i=1;i<=4;i++)fields.push({k:'p'+i,label:'Article '+i,type:'select',options:opts,full:true},{k:'q'+i,label:'Quantité',type:'number',min:1});
+  formModal({title:'Ajouter des articles : '+r.eventName,narrow:true,fields,submit:'Ajouter (facture complémentaire)',onSubmit:v=>{
+    const add=[];for(let i=1;i<=4;i++){const pid=v['p'+i],q=Math.round(v['q'+i]);if(pid&&q>0){const e=add.find(x=>x.pid===pid);if(e)e.qty+=q;else add.push({pid,qty:q,price:prod(pid).price})}}
+    if(!add.length){toast('Choisissez au moins un article et une quantité.',1);return false}
+    const merged=r.lines.map(l=>({...l}));add.forEach(a=>{const l=merged.find(x=>x.pid===a.pid&&!x.pack);if(l)l.qty+=a.qty;else merged.push({...a})});
+    const bad=checkAvail(merged,r.start,r.end,r.id);if(bad.length){toast('Stock insuffisant : '+bad[0],1);return false}
+    const ad={id:uid('f'),at:nowLocal(),by:S.me,lines:add};const dep0=r.deposit||0;
+    r.lines=merged;(r.addons=r.addons||[]).push(ad);r.deposit=depositFor(r);save();
+    toast('Complément ajouté à la facture N° '+r.no+' : '+F(addonTotal(r,ad))+' à encaisser'+(r.deposit>dep0?' + caution '+F(r.deposit-dep0):'')+'.');
+    setTimeout(()=>{render();showRental(id)},0);
+  }});
+}
+function printAddon(id,aid){
+  const r=S.rentals.find(x=>x.id===id),c=client(r.clientId)||{},nd=nDays(r),k=(r.addons||[]).findIndex(x=>x.id===aid),a=(r.addons||[])[k];
+  if(!a)return;if(!can('money')){toast('Document financier : accès réservé.',1);return}
+  const rows=a.lines.map(l=>{const p=prod(l.pid)||{name:'?'};return `<tr><td>${esc(p.name)}</td><td style="text-align:right">${l.qty}</td><td style="text-align:right">${F(l.price)}</td><td style="text-align:right">${F(l.qty*l.price*nd)}</td></tr>`}).join('');
+  const T=addonTotal(r,a);
+  $('#print').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start"><div><h1 style="font-family:'Cormorant Garamond',serif;letter-spacing:.14em">MAJAVA</h1><div>Location événementielle<br>Cocody Val Doyen, 01 BP 2363 Abidjan 01<br>+225 27 22 48 05 10 · +225 07 58 00 58 52<br>my@majavaci.com</div></div><div style="text-align:right"><h1 style="font-size:1.6rem">Facture complémentaire n° ${k+1}</h1><div>Facture N° ${esc(r.no)}<br>Date : ${fd(a.at.slice(0,10),1)}</div></div></div>
+  <div class="meta"><div><b>Client</b><br>${esc(c.name||'')}<br>${esc(c.phone||'')}<br>${esc(c.address||'')}</div><div style="text-align:right"><b>Événement</b><br>${esc(r.eventName)}<br>Du ${fd(r.start,1)} au ${fd(r.end,1)} (${nd} j)</div></div>
+  <p>Cette facture complémentaire fait partie de la commande déjà facturée sous le <b>n° ${esc(r.no)}</b> : elle porte le même numéro.</p>
+  <table><thead><tr><th style="text-align:left">Article ajouté</th><th style="text-align:right">Qté</th><th style="text-align:right">Prix / jour</th><th style="text-align:right">Total (${nd} j)</th></tr></thead><tbody>${rows}</tbody></table>
+  <div style="margin-left:auto;width:360px;margin-top:10px">${row('<b>Total du complément</b>','<b>'+F(T)+'</b>','border-top:1px solid #222;margin-top:4px;padding-top:4px')}</div>`+legalHtml();
+  document.body.classList.add('printing');
+  const done=()=>{document.body.classList.remove('printing');window.removeEventListener('afterprint',done)};
+  window.addEventListener('afterprint',done);
+  try{window.print()}catch(e){done();toast('L’impression n’est pas disponible dans cet aperçu.',1)}
+  setTimeout(()=>{if(document.body.classList.contains('printing'))done()},1500);
+}
+
 const row=(a,b,o='')=>`<div style="display:flex;justify-content:space-between;gap:12px;${o}"><span>${a}</span><span style="white-space:nowrap">${b}</span></div>`;
 const LEGAL='MAJAVA EVENT — Sise à Cocody Val Doyen 01 BP 2363 ABIDJAN 01 — Tel : +225 27 22 48 05 10 / Cel : 07 88 50 00 10 — RCCM : CI-ABJ-03-2025-B-13-11599 / N°CC : 2506834';
 const legalHtml=()=>`<div style="margin-top:28px;border-top:1px solid #999;padding-top:6px;font-size:.72rem;text-align:center;color:#444">${LEGAL}<br><i>« Louez l’exception, créer l’émotion »</i></div>`;
@@ -1216,7 +1254,7 @@ function printSpecial(id,kind){
   setTimeout(()=>{if(document.body.classList.contains('printing'))done()},1500);
 }
 function printDoc(id,kind){
-  if(kind==='br'||kind==='fr'||kind==='fc'){printSpecial(id,kind);return}
+  if(String(kind).startsWith('fa:')){printAddon(id,kind.slice(3));return}if(kind==='br'||kind==='fr'||kind==='fc'){printSpecial(id,kind);return}
   if((kind==='facture'||kind==='devis')&&!can('money')){toast('Document financier : accès réservé.',1);return}
   const r=S.rentals.find(x=>x.id===id),c=client(r.clientId)||{},nd=nDays(r);
   const title=kind==='bl'?'Bon de livraison':kind==='facture'?'Facture':'Devis';
@@ -1801,6 +1839,7 @@ const ACT={
   holdForm:el=>holdForm(el.dataset.id),advanceForm:el=>advanceForm(el.dataset.id),prepForm:el=>prepForm(el.dataset.id),deliver:el=>deliver(el.dataset.id),
   showReturn:el=>showReturn(el.dataset.id),noteReturnDate:el=>noteReturnDate(el.dataset.id),settleForm:el=>settleForm(el.dataset.id),addPay:el=>addPay(el.dataset.id,el.dataset.kind),closeDep:el=>closeDep(el.dataset.id),
   regul:el=>regul(el.dataset.id),cancelRental:el=>cancelRental(el.dataset.id),
+  addItems:el=>addItemsForm(el.dataset.id),
   printDoc:el=>printDoc(el.dataset.id,el.dataset.kind),printPage:()=>{try{window.print()}catch(e){toast('L’impression n’est pas disponible dans cet aperçu.',1)}},
   editDraft:el=>{const r=byId(el.dataset.id);ui.draft=Object.assign(newDraft(),{editId:r.id,clientId:r.clientId,eventName:r.eventName,eventType:r.eventType,source:r.source||'Téléphone',start:r.start<TODAY?TODAY:r.start,end:r.end<TODAY?TODAY:r.end,lines:r.lines.map(l=>({pid:l.pid,qty:l.qty,pr:l.price!==prod(l.pid).price?l.price:null,pk:l.price!==prod(l.pid).price?l.qty:null})),delivery:r.delivery,discount:r.discount,notes:r.notes,delivSlot:r.delivSlot||'',pickSlot:r.pickSlot||''});(()=>{const d=ui.draft;d.lines.forEach(t=>{const pk=PACK[prod(t.pid).name];if(!pk)return;const nl=d.lines.find(n=>n.pk!=null&&n.pk===t.qty&&pk.nappes.includes(prod(n.pid).name));if(nl)t.pack=nl.pid})})();closeModal();go('pos')},
   rentTo:el=>{ui.draft=Object.assign(newDraft(),{clientId:el.dataset.id});closeModal();go('pos')},
