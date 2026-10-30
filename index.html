@@ -455,7 +455,7 @@ const CATS=[...new Set(G.map(g=>g[0]))];
 const CATCOL={'Chaises & fauteuils':'#A8456D','Tables & nappes':'#5A56A0','Fonds de scène & murs':'#9A7A2E','Supports décoratifs':'#8A3A58','Lumières':'#C9923A','Assiettes & sets':'#3D6A4D','Couverts':'#5C7C8A','Verres & carafes':'#7A62A8','Service de table':'#B0603A','Centres de table':'#8A4F7D','Climatisation':'#2F7C8C'};
 const EVENT_TYPES=['Mariage','Baptême','Anniversaire','Cocktail','Séminaire','Conférence','Lancement de produit','Gala','Autre'];
 const PAY=['Espèces','Wave','Orange Money','MTN MoMo','Mobile Money','Virement','Chèque'];
-const ROLES={admin:'Administrateur',commercial:'Commercial',stock:'Gestionnaire de stock',driver:'Livreur',maint:'Agent d’entretien',accountant:'Comptable'};
+const ROLES={admin:'Administrateur',commercial:'Commercial',stock:'Entrepôt',driver:'Livreur (ancien rôle)',maint:'Entretien (ancien rôle)',accountant:'Comptable'};
 const ALL=Object.keys(ROLES);
 const NAV=[
  {id:'pos',label:'Nouvelle commande',ic:'plus',roles:['admin','commercial'],cta:1},
@@ -466,6 +466,7 @@ const NAV=[
  {id:'deposits',label:'Cautions',ic:'lock',roles:['admin','commercial','accountant']},
  {id:'moves',label:'Mouvements de stock',ic:'swap',roles:['admin','stock','maint']},
  {id:'rebut',label:'Rebut',ic:'alert',roles:['admin','stock','maint','commercial']},
+ {id:'care',label:'Entretien du linge',ic:'swap',roles:['admin','stock','maint']},
  {id:'clients',label:'Clients',ic:'users',roles:['admin','commercial']},
  {id:'suppliers',label:'Fournisseurs & achats',ic:'truck',roles:['admin','stock']},
  {id:'reports',label:'Rapports',ic:'chart',roles:['admin','accountant']},
@@ -473,10 +474,10 @@ const NAV=[
  {id:'settings',label:'Règles & paramètres',ic:'gear',roles:['admin']},
  {id:'support',label:'Support',ic:'help',roles:ALL}
 ];
-const ACT_ROLES={rent:['admin','commercial'],pay:['admin','commercial'],prepare:['admin','stock'],deliver:['admin','driver'],
+const ACT_ROLES={rent:['admin','commercial'],pay:['admin','commercial'],prepare:['admin','stock'],deliver:['admin','stock','driver'],
  ret:['admin','stock','maint'],settle:['admin','commercial'],retDate:['admin','commercial','stock'],
- stock:['admin','stock'],create:['admin','stock','commercial'],transform:['admin','maint'],qty:['admin','stock','commercial'],advise:['admin','commercial','stock','maint'],restock:['admin','stock'],stateEdit:['admin','stock','maint'],signal:['admin','commercial','maint'],
- deposit:['admin','commercial'],regul:['admin','commercial','stock'],money:['admin','commercial','accountant'],purchase:['admin','stock'],clients:['admin','commercial'],team:['admin']};
+ stock:['admin','stock'],create:['admin','stock','commercial'],transform:['admin','stock','maint'],qty:['admin','stock','commercial'],advise:['admin','commercial','stock','maint'],restock:['admin','stock'],stateEdit:['admin','stock','maint'],signal:['admin','commercial','maint'],
+ deposit:['admin','commercial'],regul:['admin','commercial','stock'],money:['admin','commercial','accountant'],purchase:['admin','stock'],clients:['admin','commercial'],team:['admin'],sign:['admin','commercial']};
 const STATUSES=['Devis','Pré-réservation','Confirmée','Sortie','Retournée','Expirée','Annulée'];
 const SLOTS=['7h – 9h','9h – 11h','11h – 13h','13h – 15h','15h – 17h','17h – 19h'];
 const DEFAULT_CONDITIONS=["Article 1. La société MAJAVA s'engage à mettre à la disposition du Client du matériel à louer en bon état d'utilisation après une vérification préalable par le Client lors de la livraison et une fois le Bon de livraison signé. Toute malfaçon ou détérioration constatée par le Client devra être notifiée sur le bon de livraison. Par ailleurs, les remarques après validation de la réception ne seront pas prises en compte.", "Article 2. Le Client s’engage à prendre soin du matériel mis à sa disposition et à le restituer après utilisation. Il est responsable de tous les dommages causés à tout matériel loué pendant la durée de la location, jusqu’à restitution effective de celui-ci à la société MAJAVA.", "Article 3. La présence du Client est nécessaire lors de la livraison et de la récupération du matériel loué. En cas d’absence ou empêchement, le Client assigne un Représentant, qui l’engage. Celui-ci devra procéder à un contrôle minutieux du matériel à l’occasion de la livraison du matériel. Il veillera également à regrouper le matériel en vue de le rendre accessible pour la récupération par la société MAJAVA.", "Article 4. Le client doit s’acquitter de la totalité de sa facture (commande, transport et caution) avant toute livraison. Seul le paiement total vaut réservation des articles. Tout paiement par chèque doit se faire au maximum quatre (04) jours ouvrables avant la date de livraison du matériel. Dans le cas contraire, le client devra procéder au paiement en espèces ou via paiement mobile(Orange Money, Wave, etc….). La caution versée est disponible 48h jours ouvrables après la récupération du matériel et reste disponible sur rdv après un délai de 10 jours en showroom. Passé ce délai, la restitution de la caution devra se faire sur rdv.", "Article 5. En cas de dégradation, détérioration, perte, vol et/ou disparition du matériel loué, le Client devra payer à la société MAJAVA, le coût du dommage du matériel. Ce coût sera déduit de la caution du client si toutefois celle-ci est suffisante, dans le cas contraire le client devra s’acquitter du surplus et soldé dans les 72 heures.", "Article 6. Le matériel non restitué à la date prévue sera facturé en jours supplémentaires de location à partir du lendemain de la date de récupération prévue dans le contrat.", "Article 7. La société MAJAVA procédera à l’installation de tout matériel dit technique. Par conséquent, il est formellement interdit de faire intervenir un technicien externe pour installer, démonter ou manipuler le matériel de la société MAJAVA.", "Article 8. Le matériel pris en location est livré par la société MAJAVA sur le lieu de livraison correspondant au lieu d’utilisation du matériel comme indiqué sur la facture. Il est donc interdit de déplacer le matériel sur un autre lieu que celui indiqué sur la facture du client sauf autorisation exceptionnelle de la société MAJAVA.", "Article 9. Il est interdit de poser des agrafes, perforer, pointer, percer etc… le matériel loué, notamment les nappes, tables, abris mis à disposition. Le matériel sera jugé endommagé le cas échéant et les couts dommages s’y appliqueront.", "Article 10. Les annulations ou reports sont admis dans un délai supérieur à 72 heures avant le début de la livraison dans le cas contraire, seulement 50% du montant de la commande sera restituée au client.", "Article 11. Le présent contrat prend effet à compter de la date de sa signature et/ou approbation électronique par le Client. En cas de différends résultant de l'application et/ou de l'interprétation du présent contrat, les parties conviennent de recourir à un règlement amiable dans un délai maximum de 30 jours. A défaut, le Tribunal de Commerce d'Abidjan sera compétent."];
@@ -508,8 +509,8 @@ const TBL={
   from:r=>({id:r.id,name:r.name,type:r.client_type,phone:nz(r.phone),email:nz(r.email),address:nz(r.address),notes:nz(r.notes),terms:r.terms||null})},
  suppliers:{to:s=>({id:s.id,name:s.name,contact:s.contact,phone:s.phone,email:s.email,category:s.category,city:s.city,notes:s.notes}),
   from:r=>({id:r.id,name:r.name,contact:nz(r.contact),phone:nz(r.phone),email:nz(r.email),category:nz(r.category),city:nz(r.city),notes:nz(r.notes)})},
- rentals:{to:r=>({id:r.id,rental_no:r.no,quote_no:r.quoteNo||null,addons:r.addons||[],decharge:r.decharge||null,deliv_commune:nn(r.delivCommune),deliv_zone:nn(r.delivZone),deliv_addr:nn(r.delivAddr),client_id:r.clientId,event_name:r.eventName,event_type:r.eventType,source:r.source||null,start_date:r.start,end_date:r.end,status:r.status,lines:r.lines,delivery:r.delivery,discount:r.discount,fees:r.fees||0,payments:r.payments,lost:r.lost||{},incidents:r.incidents||[],notes:r.notes||'',created:r.created||null,created_by:nn(r.by),hold_until:nn(r.holdUntil),hold_by:nn(r.holdBy),expired_at:nn(r.expiredAt),prepared:!!r.prepared,prepared_at:nn(r.preparedAt),prepared_by:nn(r.preparedBy),out_at:nn(r.outAt),out_by:nn(r.outBy),returned_at:nn(r.returnedAt),returned_by:nn(r.returnedBy),regul:!!r.regul,cancelled_at:nn(r.cancelledAt),cancelled_by:nn(r.cancelledBy),deposit:r.deposit||0,deposit_state:nn(r.depositState),deposit_retained:r.depositRetained||0,deposit_closed_on:nn(r.depositClosedOn),deposit_back:r.depositBack||0,return_date:nn(r.returnDate),late_days:r.lateDays||0,late_fee:r.lateFee||0,settled:!!r.settled,settled_at:nn(r.settledAt),settled_by:nn(r.settledBy),exception_note:nn(r.exceptionNote),exception_by:nn(r.exceptionBy),exception_at:nn(r.exceptionAt),deliv_slot:nn(r.delivSlot),pick_slot:nn(r.pickSlot),bill_days:r.billDays>0?r.billDays:null}),
-  from:r=>({id:r.id,no:r.rental_no,quoteNo:nz(r.quote_no),addons:r.addons||[],decharge:r.decharge||null,delivCommune:r.deliv_commune||'',delivZone:r.deliv_zone||'',delivAddr:r.deliv_addr||'',clientId:r.client_id,eventName:r.event_name,eventType:nz(r.event_type),source:nz(r.source),start:r.start_date,end:r.end_date,status:r.status,lines:r.lines||[],delivery:+r.delivery,discount:+r.discount,fees:+r.fees,payments:r.payments||[],lost:r.lost||{},incidents:r.incidents||[],notes:nz(r.notes),created:nz(r.created),by:nz(r.created_by),holdUntil:r.hold_until||null,holdBy:nz(r.hold_by),expiredAt:r.expired_at||null,prepared:!!r.prepared,preparedAt:r.prepared_at||null,preparedBy:r.prepared_by||null,outAt:r.out_at||null,outBy:r.out_by||null,returnedAt:r.returned_at||null,returnedBy:r.returned_by||null,regul:!!r.regul,cancelledAt:r.cancelled_at||null,cancelledBy:r.cancelled_by||null,deposit:+r.deposit,depositState:r.deposit_state||null,depositRetained:+r.deposit_retained,depositClosedOn:r.deposit_closed_on||null,depositBack:+r.deposit_back,returnDate:r.return_date||null,lateDays:+r.late_days||0,lateFee:+r.late_fee||0,settled:!!r.settled,settledAt:r.settled_at||null,settledBy:r.settled_by||null,exceptionNote:r.exception_note||null,exceptionBy:r.exception_by||null,exceptionAt:r.exception_at||null,delivSlot:r.deliv_slot||'',pickSlot:r.pick_slot||'',billDays:r.bill_days>0?+r.bill_days:0,moneyHidden:r.fully_paid!==undefined,fullyPaid:r.fully_paid===true})},
+ rentals:{to:r=>({id:r.id,rental_no:r.no,quote_no:r.quoteNo||null,addons:r.addons||[],decharge:r.decharge||null,deliv_commune:nn(r.delivCommune),deliv_zone:nn(r.delivZone),deliv_addr:nn(r.delivAddr),client_id:r.clientId,event_name:r.eventName,event_type:r.eventType,source:r.source||null,start_date:r.start,end_date:r.end,status:r.status,lines:r.lines,delivery:r.delivery,discount:r.discount,fees:r.fees||0,payments:r.payments,lost:r.lost||{},incidents:r.incidents||[],notes:r.notes||'',created:r.created||null,created_by:nn(r.by),hold_until:nn(r.holdUntil),hold_by:nn(r.holdBy),expired_at:nn(r.expiredAt),prepared:!!r.prepared,prepared_at:nn(r.preparedAt),prepared_by:nn(r.preparedBy),out_at:nn(r.outAt),out_by:nn(r.outBy),returned_at:nn(r.returnedAt),returned_by:nn(r.returnedBy),regul:!!r.regul,cancelled_at:nn(r.cancelledAt),cancelled_by:nn(r.cancelledBy),deposit:r.deposit||0,deposit_state:nn(r.depositState),deposit_retained:r.depositRetained||0,deposit_closed_on:nn(r.depositClosedOn),deposit_back:r.depositBack||0,return_date:nn(r.returnDate),late_days:r.lateDays||0,late_fee:r.lateFee||0,settled:!!r.settled,settled_at:nn(r.settledAt),settled_by:nn(r.settledBy),exception_note:nn(r.exceptionNote),exception_by:nn(r.exceptionBy),exception_at:nn(r.exceptionAt),deliv_slot:nn(r.delivSlot),pick_slot:nn(r.pickSlot),bill_days:r.billDays>0?r.billDays:null,signed_on:nn(r.signedOn),signed_by:nn(r.signedBy),signed_mode:nn(r.signedMode),signed_file:nn(r.signedFile)}),
+  from:r=>({id:r.id,no:r.rental_no,quoteNo:nz(r.quote_no),addons:r.addons||[],decharge:r.decharge||null,delivCommune:r.deliv_commune||'',delivZone:r.deliv_zone||'',delivAddr:r.deliv_addr||'',clientId:r.client_id,eventName:r.event_name,eventType:nz(r.event_type),source:nz(r.source),start:r.start_date,end:r.end_date,status:r.status,lines:r.lines||[],delivery:+r.delivery,discount:+r.discount,fees:+r.fees,payments:r.payments||[],lost:r.lost||{},incidents:r.incidents||[],notes:nz(r.notes),created:nz(r.created),by:nz(r.created_by),holdUntil:r.hold_until||null,holdBy:nz(r.hold_by),expiredAt:r.expired_at||null,prepared:!!r.prepared,preparedAt:r.prepared_at||null,preparedBy:r.prepared_by||null,outAt:r.out_at||null,outBy:r.out_by||null,returnedAt:r.returned_at||null,returnedBy:r.returned_by||null,regul:!!r.regul,cancelledAt:r.cancelled_at||null,cancelledBy:r.cancelled_by||null,deposit:+r.deposit,depositState:r.deposit_state||null,depositRetained:+r.deposit_retained,depositClosedOn:r.deposit_closed_on||null,depositBack:+r.deposit_back,returnDate:r.return_date||null,lateDays:+r.late_days||0,lateFee:+r.late_fee||0,settled:!!r.settled,settledAt:r.settled_at||null,settledBy:r.settled_by||null,exceptionNote:r.exception_note||null,exceptionBy:r.exception_by||null,exceptionAt:r.exception_at||null,delivSlot:r.deliv_slot||'',pickSlot:r.pick_slot||'',billDays:r.bill_days>0?+r.bill_days:0,signedOn:nz(r.signed_on),signedBy:nz(r.signed_by),signedMode:nz(r.signed_mode),signedFile:nz(r.signed_file),moneyHidden:r.fully_paid!==undefined,fullyPaid:r.fully_paid===true})},
  purchases:{to:p=>({id:p.id,po_no:p.no,supplier_id:p.supplierId,order_date:p.date,status:p.status,lines:p.lines,created_by:p.by||null,received_on:p.receivedOn||null}),
   from:r=>({id:r.id,no:r.po_no,supplierId:r.supplier_id,date:r.order_date,status:r.status,lines:r.lines||[],by:nz(r.created_by),receivedOn:r.received_on||undefined})},
  moves:{to:m=>({id:m.id,move_date:m.date,at:m.at||null,seq:m.seq,product_id:m.pid,move_type:m.type,qty:m.qty,ref:m.ref||'',note:m.note||'',created_by:m.by||null}),
@@ -864,14 +865,14 @@ function renderSide(){
   $('.menu-btn').innerHTML=ic('menu');
   $('#userBox').innerHTML=`<span class="who"><b>${esc(me().name)}</b><small>${esc(ROLES[me().role])}</small></span><button class="btn sm" data-act="logout">Se déconnecter</button>`;
 }
-const TITLES={support:'Support : incidents et demandes',pos:'Nouvelle commande',dash:'Tableau de bord',rentals:'Commandes',stock:'Catalogue & stock',cash:'Brouillon de caisse journalier',deposits:'Suivi des cautions',moves:'Mouvements de stock',rebut:'Articles mis au rebut',clients:'Clients',suppliers:'Fournisseurs & achats',reports:'Rapports',team:'Équipe & accès',settings:'Règles & paramètres'};
+const TITLES={care:'Entretien du linge (lavage, repassage, rangement)',support:'Support : incidents et demandes',pos:'Nouvelle commande',dash:'Tableau de bord',rentals:'Commandes',stock:'Catalogue & stock',cash:'Brouillon de caisse journalier',deposits:'Suivi des cautions',moves:'Mouvements de stock',rebut:'Articles mis au rebut',clients:'Clients',suppliers:'Fournisseurs & achats',reports:'Rapports',team:'Équipe & accès',settings:'Règles & paramètres'};
 function go(v){if(v==='support'&&ui.view!=='support')ui.supFrom=ui.view;ui.view=v;$('#app').classList.remove('nav-open');render();window.scrollTo(0,0)}
 function render(){
   if(expireHolds())save();
   if(!allowedViews().includes(ui.view))ui.view='dash';
   renderSide();
   $('#title').textContent=TITLES[ui.view];
-  const V={dash:vDash,rentals:vRentals,pos:vPos,stock:vStock,cash:vCash,deposits:vDeposits,moves:vMoves,rebut:vRebut,clients:vClients,suppliers:vSuppliers,reports:vReports,team:vTeam,settings:vSettings,support:vSupport};
+  const V={dash:vDash,rentals:vRentals,pos:vPos,stock:vStock,cash:vCash,deposits:vDeposits,moves:vMoves,rebut:vRebut,care:vCare,clients:vClients,suppliers:vSuppliers,reports:vReports,team:vTeam,settings:vSettings,support:vSupport};
   $('#view').innerHTML=V[ui.view]();
   $('#plist').innerHTML=S.products.map(p=>`<option value="${esc(p.name)}">`).join('');
   if(ui.view==='pos')drawPos();
@@ -921,12 +922,13 @@ function vDash(){
   holds.forEach(r=>T(['admin','commercial'],{k:'r',id:r.id,c:'b-warn',i:'alert',t:'Pré-réservation à confirmer : '+r.eventName,s:'Expire dans '+holdLeft(r)+' · paiement total à encaisser'}));
   S.rentals.filter(r=>r.status==='Devis').forEach(r=>T(['admin','commercial'],{k:'r',id:r.id,c:'b-info',i:'list',t:(r.source==='Plateforme (demande en ligne)'?'Demande en ligne à traiter : ':'Devis à traiter : ')+r.eventName,s:(client(r.clientId)||{}).name+' — événement le '+fd(r.start)}));
   toPrep.forEach(r=>T(['admin','stock'],{k:'r',id:r.id,c:'b-info',i:'box',t:'À préparer : '+r.eventName,s:'Événement le '+fd(r.start)+' · '+r.lines.reduce((a,l)=>a+l.qty,0)+' pièces'}));
-  toDeliver.forEach(r=>T(['admin','driver'],{k:'r',id:r.id,c:'b-plum',i:'truck',t:'À livrer : '+r.eventName,s:'Préparée · événement le '+fd(r.start)}));
+  toDeliver.forEach(r=>T(['admin','stock','driver'],{k:'r',id:r.id,c:'b-plum',i:'truck',t:'À livrer : '+r.eventName,s:'Préparée · événement le '+fd(r.start)}));
   S.rentals.filter(r=>r.status==='Confirmée'&&r.start<=addD(TODAY,7)&&balance(r)>0).forEach(r=>T(['admin','commercial'],{k:'r',id:r.id,c:'b-warn',i:'wallet',t:'Solde à encaisser : '+F(balance(r)),s:r.eventName+' — '+fd(r.start)}));
   S.rentals.filter(r=>r.status==='Confirmée'&&r.deposit&&cautionPaid(r)<r.deposit&&r.start<=addD(TODAY,7)).forEach(r=>T(['admin','commercial'],{k:'r',id:r.id,c:'b-warn',i:'lock',t:'Caution à encaisser : '+F(r.deposit-cautionPaid(r)),s:r.eventName+' — '+fd(r.start)}));
   toReturn.filter(r=>!overdue(r)).forEach(r=>T(['admin','stock','maint','driver'],{k:'r',id:r.id,c:'b-warn',i:'swap',t:'Retour attendu : '+r.eventName,s:'Fin le '+fd(r.end)}));
   S.rentals.filter(r=>r.status==='Retournée'&&!r.settled).forEach(r=>T(['admin','commercial'],{k:'r',id:r.id,c:'b-warn',i:'wallet',t:'Retour à régler : '+r.eventName,s:'Casse, retard et caution à calculer'+(r.returnDate&&r.returnDate>r.end?' · '+diff(r.end,r.returnDate)+' j de retard':'')}));
   pendingAdvice().forEach(x=>T(['admin','commercial','stock'],{k:'p',id:x.p.id,c:'b-info',i:'alert',t:'Avis demandé : '+x.p.name,s:'Par '+staffName(x.m.by)+' · '+fdt(x.m.at||x.m.date)}));
+  pendingProps().forEach(x=>T(['admin'],{k:'g',id:'rebut',c:'b-warn',i:'alert',t:'À valider : '+PROP_LABEL[x.d.kind].toLowerCase()+' · '+x.p.name,s:'Proposé par '+staffName(x.m.by)+' · '+fdt(x.m.at||x.m.date)}));
   pendingSignals().forEach(x=>T(['admin','stock'],{k:'p',id:x.p.id,c:x.kind==='rebut'?'b-bad':'b-info',i:'box',t:(x.kind==='rebut'?'À mettre au rebut : ':'À remettre en stock : ')+x.p.name,s:'Signalé par '+staffName(x.m.by)+' · '+fdt(x.m.at||x.m.date)}));
   S.rentals.filter(r=>r.status==='Retournée'&&r.settled&&r.deposit&&!r.depositClosedOn).forEach(r=>T(['admin','commercial','accountant'],{k:'r',id:r.id,c:'b-info',i:'lock',t:'Caution à clôturer : '+F(r.deposit-(r.depositRetained||0))+' à restituer',s:r.eventName+' · '+r.depositState}));
   low.slice(0,4).forEach(p=>T(['admin','stock'],{k:'p',id:p.id,c:'b-warn',i:'box',t:'Stock bas : '+p.name,s:'Disponible aujourd’hui : '+avail(p,TODAY,TODAY)+' (seuil '+p.min+')'}));
@@ -951,7 +953,7 @@ function vDash(){
       <section class="panel"><div class="panel-h"><h3>Ce qui rapporte, par famille de produits</h3><small>commandes confirmées</small></div>${hbars(Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([l,v])=>({l,v,c:CATCOL[l]})),F)}</section>`:''}
     </div>
     <section class="panel"><div class="panel-h"><h3>À traiter par votre rôle</h3><small>${todo.length} action${todo.length>1?'s':''}</small></div>
-    ${todo.length?`<ul class="todo">${todo.map(t=>`<li data-act="${t.k==='r'?'openRental':'openProduct'}" data-id="${t.id}"><span class="dot ${t.c}">${ic(t.i,16)}</span><span><b>${esc(t.t)}</b><small>${esc(t.s)}</small></span></li>`).join('')}</ul>`:empty('Tout est à jour','Aucune action pour votre rôle pour le moment.')}</section>
+    ${todo.length?`<ul class="todo">${todo.map(t=>`<li data-act="${t.k==='r'?'openRental':t.k==='g'?'go':'openProduct'}" data-id="${t.id}" data-v="${t.id}"><span class="dot ${t.c}">${ic(t.i,16)}</span><span><b>${esc(t.t)}</b><small>${esc(t.s)}</small></span></li>`).join('')}</ul>`:empty('Tout est à jour','Aucune action pour votre rôle pour le moment.')}</section>
   </div>`;
 }
 function timeline(){
@@ -1031,6 +1033,7 @@ function showRental(id){
   if(r.status==='Retournée'&&r.settled&&r.fees>0&&balance(r)>0&&can('pay'))b.push(`<button class="btn primary" data-act="addPay" data-id="${r.id}" data-kind="location">${ic('wallet',16)} Encaisser le complément (${F(balance(r))})</button>`);
   if((r.status==='Confirmée'||r.status==='Sortie')&&balance(r)>0&&can('pay'))b.push(`<button class="btn" data-act="addPay" data-id="${r.id}" data-kind="location">${ic('wallet',16)} Encaisser un paiement</button>`);
   if((r.status==='Confirmée'||r.status==='Sortie')&&r.deposit&&cautionPaid(r)<r.deposit&&can('deposit'))b.push(`<button class="btn" data-act="addPay" data-id="${r.id}" data-kind="caution">${ic('lock',16)} Encaisser la caution (${F(r.deposit-cautionPaid(r))})</button>`);
+  if(live(r)&&can('sign'))b.push(`<button class="btn" data-act="signForm" data-id="${r.id}">${ic('check',16)} ${r.signedOn?'Modifier la facture signée':'Facture signée'}</button>`);
   if(r.status==='Confirmée'&&can('rent'))b.push(`<button class="btn" data-act="addItems" data-id="${r.id}">${ic('plus',16)} Ajouter des articles (facture complémentaire)</button>`);
   (r.addons||[]).forEach((a,i)=>{if(can('money'))b.push(`<button class="btn" data-act="printDoc" data-id="${r.id}" data-kind="fa:${a.id}">${ic('print',16)} Facture complémentaire n° ${i+1}</button>`)});
   if(r.status==='Retournée'&&r.settled&&r.fees>0&&can('money'))b.push(`<button class="btn" data-act="printDoc" data-id="${r.id}" data-kind="fc">${ic('print',16)} Facture complémentaire (dommages)</button>`);
@@ -1044,14 +1047,14 @@ function showRental(id){
   if(r.status==='Retournée'&&r.deposit&&can('settle')&&!r.depositClosedOn)b.push(`<button class="btn primary" data-act="editDech" data-id="${r.id}">${ic('lock',16)} Établir / modifier la décharge caution</button>`);
   if(r.status==='Retournée'&&r.deposit&&can('money'))b.push(`<button class="btn" data-act="printDoc" data-id="${r.id}" data-kind="fr">${ic('print',16)} Décharge caution</button>`);
   if((needAdv||r.status==='Confirmée')&&can('rent'))b.push(`<button class="btn danger" data-act="cancelRental" data-id="${r.id}">${r.status==='Pré-réservation'?'Libérer le stock (annuler)':'Annuler la commande'}</button>`);
-  const warn=overdue(r)?`<div class="warn-box">Matériel non restitué depuis le ${fd(r.end)}${r.regul?' — en attente de régularisation':''}.</div>`:r.status==='Pré-réservation'?`<div class="warn-box">Stock bloqué temporairement : expire dans ${holdLeft(r)}. Sans paiement total (articles, transport et caution), la commande expire et les articles sont libérés (aucune pénalité).</div>`:(r.status==='Confirmée'&&!r.prepared)?`<div class="hint" style="margin:6px 0">Étape suivante : préparation par le gestionnaire de stock. Aucune livraison sans préparation validée, caution enregistrée et réservation confirmée.</div>`:'';
+  const warn=overdue(r)?`<div class="warn-box">Matériel non restitué depuis le ${fd(r.end)}${r.regul?' — en attente de régularisation':''}.</div>`:r.status==='Pré-réservation'?`<div class="warn-box">Stock bloqué temporairement : expire dans ${holdLeft(r)}. Sans paiement total (articles, transport et caution), la commande expire et les articles sont libérés (aucune pénalité).</div>`:(r.status==='Confirmée'&&!r.prepared)?`<div class="hint" style="margin:6px 0">Étape suivante : préparation par l’entrepôt. Aucune livraison sans préparation validée, caution enregistrée et réservation confirmée.</div>`:'';
   const inc=r.incidents.length?`<h3 style="margin:16px 0 6px">Pertes et casses signalées</h3><div class="scroll"><table><tbody>${r.incidents.map(x=>`<tr><td>${fdt(x.at)}</td><td>${esc(x.type)}</td><td>${esc((prod(x.pid)||{}).name)}</td><td class="num">${x.qty}</td><td>${esc(staffName(x.by))}</td></tr>`).join('')}</tbody></table></div>`:'';
   const dep=r.deposit?`<div class="kv" style="margin-top:14px"><div><span>Caution (${S.settings.depositRate} %)</span><b>${F(r.deposit)}</b><span>${depBadge(r)}</span></div><div><span>Encaissée</span><b>${F(cautionPaid(r))}</b></div>${r.status==='Retournée'?`<div><span>Retenue</span><b class="${r.depositRetained?'neg':''}">${F(r.depositRetained||0)}</b></div><div><span>Reliquat à restituer au client</span><b>${F(Math.max(0,cautionPaid(r)-(r.depositRetained||0)))}</b></div>${r.settled&&r.fees>0?`<div><span>Complément à payer par le client (dommages au-delà de la caution)</span><b class="neg">${F(r.fees)}</b><span>${balance(r)>0?'<span class="badge b-warn">À encaisser : '+F(balance(r))+'</span>':'<span class="badge b-ok">Payé</span>'}</span></div>`:''}${r.settled&&r.lateFee?`<div><span>Retard de restitution</span><b>${r.lateDays} j · ${F(r.lateFee)}</b></div>`:''}`:''}</div>`:'';
   openModal(r.eventName,`
    <div class="kv"><div><span>${isInvoiceNo(r.no)?'N° de facture':'N° de devis'}</span><b>${esc(r.no)}</b>${r.quoteNo?`<span>Devis d’origine : ${esc(r.quoteNo)}</span>`:''}</div><div><span>Client</span><b>${esc(c.name||'—')}</b>${c.phone?`<span>${esc(c.phone)}</span>`:''}</div><div><span>Dates</span><b>${fd(r.start,1)}${r.end!==r.start?' → '+fd(r.end,1):''}</b><span>${nd} jour${nd>1?'s':''} · ${esc(r.eventType)}</span></div><div><span>Origine</span><b>${esc(r.source||'—')}</b></div>${placeOf(r)?`<div><span>Lieu de livraison</span><b>${esc(placeOf(r))}</b></div>`:''}</div>
    ${warn}
    <div class="scroll"><table><thead><tr><th>Article</th><th class="num">Qté</th>${m?'<th class="num">Prix/jour</th><th class="num">Total</th>':''}</tr></thead><tbody>${lines}</tbody></table></div>
-   ${m?`<div class="tot"><div><span>Location (${nd} j)</span><span>${F(subtotal(r))}</span></div><div><span>Livraison & récupération</span><span>${F(r.delivery||0)}</span></div>${r.fees?`<div><span>Frais de casse / perte (au-delà de la caution)</span><span>${F(r.fees)}</span></div>`:''}${r.discount?`<div><span>Remise</span><span>− ${F(r.discount)}</span></div>`:''}<div class="big"><span>Total</span><span>${F(total(r))}</span></div><div><span>Payé</span><span class="pos">${F(paid(r))}</span></div><div><b>Reste à payer</b><b class="${balance(r)>0?'neg':''}">${F(balance(r))}</b></div></div>${dep}
+   ${m?`<div class="tot"><div><span>Location (${nd} j)</span><span>${F(subtotal(r))}</span></div><div><span>Livraison & récupération</span><span>${F(r.delivery||0)}</span></div>${r.fees?`<div><span>Frais de casse / perte (au-delà de la caution)</span><span>${F(r.fees)}</span></div>`:''}${r.discount?`<div><span>Remise</span><span>− ${F(r.discount)}</span></div>`:''}<div class="big"><span>Total</span><span>${F(total(r))}</span></div><div><span>Payé</span><span class="pos">${F(paid(r))}</span></div><div><b>Reste à payer</b><b class="${balance(r)>0?'neg':''}">${F(balance(r))}</b></div></div>${dep}${(live(r)||r.signedOn)?signBox(r):''}
    <h3 style="margin:18px 0 6px">Paiements</h3><div class="scroll"><table><thead><tr><th>Date et heure</th><th>Nature</th><th>Moyen</th><th class="num">Montant</th><th>Enregistré par</th></tr></thead><tbody>${pays}</tbody></table></div>`:''}
    ${inc}
    <h3 style="margin:18px 0 6px">Suivi</h3>${stepsHtml(r)}
@@ -1661,19 +1664,21 @@ function vRebut(){
   const tot=list.filter(m=>!isT(m)).reduce((a,m)=>a-m.qty,0),totT=list.filter(isT).reduce((a,m)=>a-m.qty,0);
   const arts={};list.forEach(m=>{arts[m.pid]=(arts[m.pid]||0)-m.qty});
   const sig=pendingSignals();
-  const btns=`${can('stock')?`<button class="btn primary" data-act="newRebut">${ic('plus',16)} Mettre un article au rebut</button>`:''}${can('transform')?`<button class="btn primary" data-act="newTransform">${ic('swap',16)} Notifier une transformation</button>`:''}${can('advise')?`<button class="btn" data-act="newAdvice">${ic('alert',16)} Demander un avis</button>`:''}${can('signal')?`<button class="btn" data-act="newSignal">${ic('alert',16)} Signaler au stock</button>`:''}`;
+  const btns=`${can('stock')?`<button class="btn primary" data-act="newRebut">${ic('plus',16)} ${me().role==='admin'?'Mettre un article au rebut':'Proposer une mise au rebut'}</button>`:''}${can('transform')?`<button class="btn primary" data-act="newTransform">${ic('swap',16)} ${me().role==='admin'?'Notifier une transformation':'Proposer une transformation'}</button>`:''}${can('transform')?`<button class="btn primary" data-act="newRepair">${ic('swap',16)} Proposer une réparation</button>`:''}${can('advise')?`<button class="btn" data-act="newAdvice">${ic('alert',16)} Demander un avis</button>`:''}${can('signal')?`<button class="btn" data-act="newSignal">${ic('alert',16)} Signaler au stock</button>`:''}`;
   return `<div class="bar-row"><span class="grow"></span>${btns}</div>
+  ${propPanel()}
   ${sig.length?`<section class="panel" style="margin-bottom:16px"><div class="panel-h"><h3>Signalements à traiter par le stock</h3><small>${sig.length}</small></div><div class="scroll"><table><tbody>${sig.map(x=>`<tr><td>${fdt(x.m.at||x.m.date)}</td><td><b>${esc(x.p.name)}</b><span class="sub">${esc(x.m.note.replace(/^Signalement /,''))}</span></td><td>${esc(staffName(x.m.by))}</td><td><span class="badge ${x.kind==='rebut'?'b-bad':'b-info'}">${x.kind==='rebut'?'À mettre au rebut':'À remettre en stock'}</span></td><td class="num">${can('stock')?`<button class="btn sm primary" data-act="treatSignal" data-id="${x.p.id}" data-v="${x.kind}">Traiter</button>`:''}</td></tr>`).join('')}</tbody></table></div></section>`:''}
   ${advicePanel()}
   <div class="kpis"><div class="kpi"><span>Rebut définitif</span><b>${tot}</b><small>pièces jetées</small></div><div class="kpi"><span>Transformées</span><b>${totT}</b><small>pièces recyclées en autre article</small></div><div class="kpi"><span>Articles concernés</span><b>${Object.keys(arts).length}</b><small>références différentes</small></div></div>
   <section class="panel" style="padding:6px 8px"><div class="scroll">${list.length?`<table><thead><tr><th>Date et heure</th><th>Article</th><th class="num">Quantité</th><th>Devenir</th><th>Provenance et motif</th><th>Par</th></tr></thead><tbody>${list.map(m=>{const p=prod(m.pid)||{name:'?',ref:''};return `<tr><td>${fdt(m.at||m.date)}</td><td><b>${esc(p.name)}</b><span class="sub">${esc(p.ref)}</span></td><td class="num neg"><b>${m.qty}</b></td><td><span class="badge ${isT(m)?'b-info':'b-bad'}">${isT(m)?'Transformé':'Rebut définitif'}</span></td><td>${esc(m.note||'—')}</td><td>${esc(staffName(m.by))}</td></tr>`}).join('')}</tbody></table>`:empty('Aucun article au rebut','Les articles inutilisables apparaîtront ici et sortiront du stock.')}</div></section>
-  <p class="hint">Qui fait quoi : le <b>service stock</b> met au rebut et remet en stock ; le <b>service entretien</b> notifie les transformations (ex. nappe abîmée en serviettes) ; l’entretien et le commercial <b>signalent</b> au stock les pièces prêtes ou à mettre au rebut. Les pièces encore réparables restent « Endommagé » ou « En entretien ».</p>`;
+  <p class="hint">Qui fait quoi : l’<b>entrepôt</b> constate et <b>propose</b> la mise au rebut, la transformation (ex. nappe abîmée en serviettes) ou la réparation ; le <b>manager</b> (administrateur) valide ou refuse, et le stock change seulement après sa validation. Le commercial peut <b>signaler</b> un article à l’entrepôt. Les pièces encore réparables restent « Endommagé » ou « En entretien ».</p>`;
 }
 function findProd(name){return S.products.find(x=>x.name.toLowerCase()===String(name||'').trim().toLowerCase())}
 function srcHave(p,from){return from==='dispo'?Math.max(0,usable(p)-outNow(p.id)):from==='maint'?(p.maint||0):(p.dmg||0)}
 const SRC_LABEL={dmg:'Endommagé',maint:'En entretien',dispo:'Disponible'};
 /* Mise en rebut : décidée et enregistrée par le service stock (l’entretien et le commercial signalent seulement) */
 function rebutForm(pid){
+  if(me().role!=='admin'&&can('transform')){proposeForm('rebut',pid);return}
   if(!can('stock')){toast('Seul le service stock met un article au rebut. L’entretien et le commercial peuvent le signaler.',1);return}
   const p0=pid?prod(pid):null;
   formModal({title:'Mettre un article au rebut',narrow:true,fields:[
@@ -1694,6 +1699,7 @@ function rebutForm(pid){
 }
 /* Transformation : notifiée par le service entretien (ex. nappe abîmée → serviettes) */
 function transformForm(pid){
+  if(me().role!=='admin'&&can('transform')){proposeForm('transformation',pid);return}
   if(!can('transform')){toast('La transformation est notifiée par le service entretien.',1);return}
   const p0=pid?prod(pid):null;
   formModal({title:'Transformer une pièce en un autre article',narrow:true,fields:[
@@ -1816,15 +1822,15 @@ function vSettings(){
 /* ============ équipe ============ */
 function vTeam(){
   const mods=NAV.filter(n=>!n.cta);
-  const acts=[['Créer une commande, pré-réserver',ACT_ROLES.rent],['Enregistrer paiements et cautions',ACT_ROLES.pay],['Préparer le matériel',ACT_ROLES.prepare],['Valider une livraison (sortie)',ACT_ROLES.deliver],['Réception du retour (comptage et état)',ACT_ROLES.ret],['Régler le retour (retard, casse, caution)',ACT_ROLES.settle],['Noter la date de dépôt par le client',ACT_ROLES.retDate],['Changer l’état d’un article (hors remise en stock)',ACT_ROLES.stateEdit],['Remise en stock, ajustement du stock, mise au rebut',ACT_ROLES.restock],['Créer ou modifier une fiche article',ACT_ROLES.create],['Notifier une transformation',ACT_ROLES.transform],['Signaler au stock (prêt à remettre ou rebut)',ACT_ROLES.signal],['Restituer / retenir une caution',ACT_ROLES.deposit],['Voir les montants',ACT_ROLES.money]];
+  const acts=[['Créer une commande, pré-réserver',ACT_ROLES.rent],['Enregistrer paiements et cautions',ACT_ROLES.pay],['Préparer le matériel',ACT_ROLES.prepare],['Valider une livraison (sortie)',ACT_ROLES.deliver],['Réception du retour (comptage et état)',ACT_ROLES.ret],['Régler le retour (retard, casse, caution)',ACT_ROLES.settle],['Noter la date de dépôt par le client',ACT_ROLES.retDate],['Changer l’état d’un article (hors remise en stock)',ACT_ROLES.stateEdit],['Remise en stock, ajustement du stock, mise au rebut',ACT_ROLES.restock],['Créer ou modifier une fiche article',ACT_ROLES.create],['Proposer rebut, transformation ou réparation',ACT_ROLES.transform],['Valider ces propositions (manager)',['admin']],['Enregistrer l’entretien du linge',['admin','stock','maint']],['Enregistrer la facture signée',['admin','commercial']],['Signaler au stock (prêt à remettre ou rebut)',ACT_ROLES.signal],['Restituer / retenir une caution',ACT_ROLES.deposit],['Voir les montants',ACT_ROLES.money]];
   return `<div class="bar-row"><span class="grow"></span><button class="btn primary" data-act="newStaff">${ic('plus',16)} Ajouter un membre</button></div>
   <section class="panel" style="padding:6px 8px"><div class="scroll"><table><thead><tr><th>Nom</th><th>Rôle</th><th>Téléphone</th><th>État</th><th></th></tr></thead><tbody>${S.staff.map(s=>`<tr><td><b>${esc(s.name)}</b></td><td>${esc(ROLES[s.role])}</td><td>${esc(s.phone||'—')}</td><td><span class="badge ${s.active?'b-ok':'b-mute'}">${s.active?'Actif':'Désactivé'}</span></td><td class="num"><button class="btn sm" data-act="editStaff" data-id="${s.id}">Modifier</button></td></tr>`).join('')}</tbody></table></div></section>
-  <section class="panel" style="margin-top:20px"><div class="panel-h"><h3>Qui peut faire quoi</h3><small>Changez d’utilisateur en haut à droite pour tester</small></div><div class="scroll"><table><thead><tr><th>Module ou action</th>${Object.values(ROLES).map(r=>`<th style="text-align:center">${esc(r)}</th>`).join('')}</tr></thead><tbody>${[...mods,...acts.map(([label,roles])=>({label,roles}))].map(m=>`<tr><td>${esc(m.label)}</td>${Object.keys(ROLES).map(k=>`<td style="text-align:center">${m.roles.includes(k)?`<span class="pos">${ic('check',16)}</span>`:'<span class="hint">—</span>'}</td>`).join('')}</tr>`).join('')}</tbody></table></div></section>`;
+  <section class="panel" style="margin-top:20px"><div class="panel-h"><h3>Qui peut faire quoi</h3><small>Changez d’utilisateur en haut à droite pour tester</small></div><div class="scroll"><table><thead><tr><th>Module ou action</th>${Object.keys(ROLES).filter(k=>k!=='driver'&&k!=='maint').map(k=>`<th style="text-align:center">${esc(ROLES[k])}</th>`).join('')}</tr></thead><tbody>${[...mods,...acts.map(([label,roles])=>({label,roles}))].map(m=>`<tr><td>${esc(m.label)}</td>${Object.keys(ROLES).filter(k=>k!=='driver'&&k!=='maint').map(k=>`<td style="text-align:center">${m.roles.includes(k)?`<span class="pos">${ic('check',16)}</span>`:'<span class="hint">—</span>'}</td>`).join('')}</tr>`).join('')}</tbody></table></div></section>`;
 }
 function staffForm(id){
   const s=id?S.staff.find(x=>x.id===id):{name:'',role:'commercial',phone:'',active:true};
   formModal({title:id?'Modifier le membre':'Ajouter un membre',narrow:true,fields:[
-    {k:'name',label:'Nom complet',required:true,value:s.name,full:true},{k:'role',label:'Rôle',type:'select',options:Object.entries(ROLES),value:s.role,full:true},
+    {k:'name',label:'Nom complet',required:true,value:s.name,full:true},{k:'role',label:'Rôle',type:'select',options:Object.entries(ROLES).filter(([k])=>k!=='driver'&&k!=='maint'||s.role===k),value:s.role,full:true},
     {k:'phone',label:'Téléphone',type:'tel',value:s.phone,full:true},{k:'active',label:'État',type:'select',options:[['1','Actif'],['0','Désactivé']],value:s.active?'1':'0',full:true}],
    onSubmit:v=>{
     const act=v.active==='1';
@@ -1993,6 +1999,153 @@ async function supSave(el){
   toast('Signalement mis à jour.');
 }
 
+/* ============ propositions à valider par le manager (rebut, transformation, réparation) ============ */
+const isProp=m=>m.type==='État'&&/^Proposition /.test(m.note||'');
+const isDecis=m=>m.type==='État'&&/^Décision \[/.test(m.note||'');
+const PROP_RE=/^Proposition (rebut|transformation|réparation) ×(\d+) depuis (dmg|maint|dispo)(?: en \[([^\]]+)\] ×(\d+))? — ([\s\S]*)$/;
+const PROP_LABEL={rebut:'Mise au rebut',transformation:'Transformation',réparation:'Réparation'};
+function parseProp(m){const x=PROP_RE.exec(m.note||'');return x?{kind:x[1],q:+x[2],from:x[3],pid2:x[4]||'',q2:+(x[5]||0),note:x[6]}:null}
+function decisionOf(id){return S.moves.find(d=>isDecis(d)&&d.note.startsWith('Décision ['+id+']'))}
+function pendingProps(){
+  return S.moves.filter(isProp).filter(m=>!decisionOf(m.id)).map(m=>({m,p:prod(m.pid),d:parseProp(m)})).filter(x=>x.p&&x.d).sort((a,b)=>(b.m.at||b.m.date).localeCompare(a.m.at||a.m.date));
+}
+function propText(x){
+  const d=x.d,p2=d.pid2?prod(d.pid2):null;
+  return PROP_LABEL[d.kind]+' de '+d.q+' × '+x.p.name+' ('+SRC_LABEL[d.from]+')'+(p2?' en '+d.q2+' × '+p2.name:'')+' — '+d.note;
+}
+function propPanel(){
+  const pend=pendingProps(),adm=me().role==='admin';
+  const done=S.moves.filter(isProp).map(m=>({m,p:prod(m.pid),d:parseProp(m),dec:decisionOf(m.id)})).filter(x=>x.dec&&x.p&&x.d).sort((a,b)=>(b.dec.at||b.dec.date).localeCompare(a.dec.at||a.dec.date)).slice(0,8);
+  if(!pend.length&&!done.length)return '';
+  return `<section class="panel" style="margin-bottom:16px"><div class="panel-h"><h3>Propositions de l’entrepôt à valider par le manager</h3><small>${pend.length} en attente</small></div><div class="scroll"><table><tbody>${pend.map(x=>`<tr><td>${fdt(x.m.at||x.m.date)}</td><td><b>${esc(x.p.name)}</b><span class="sub">${esc(propText(x))}</span></td><td>${esc(staffName(x.m.by))}</td><td class="num">${adm?`<button class="btn sm primary" data-act="propOk" data-id="${x.m.id}">Valider</button> <button class="btn sm" data-act="propNo" data-id="${x.m.id}">Refuser</button>`:'<span class="badge b-warn">En attente du manager</span>'}</td></tr>`).join('')}${done.map(x=>{const ok=/validée/.test(x.dec.note);return `<tr><td>${fdt(x.dec.at||x.dec.date)}</td><td><b>${esc(x.p.name)}</b><span class="sub">${esc(propText(x))}</span></td><td>${esc(staffName(x.dec.by))}</td><td class="num"><span class="badge ${ok?'b-ok':'b-bad'}">${ok?'Validée':'Refusée'}</span>${ok?'':`<span class="sub">${esc(x.dec.note.replace(/^Décision \[[^\]]*\] refusée\s*—?\s*/,''))}</span>`}</td></tr>`}).join('')}</tbody></table></div></section>`;
+}
+function proposeForm(kind,pid){
+  if(!can('transform')){toast('Droit insuffisant.',1);return}
+  const p0=pid?prod(pid):null,tr=kind==='transformation';
+  formModal({title:'Proposer : '+PROP_LABEL[kind].toLowerCase(),narrow:true,fields:[
+    {k:'art',label:'Article',required:true,full:true,list:'plist',value:p0?p0.name:''},
+    {k:'from',label:'Provenance',type:'select',full:true,value:'dmg',options:kind==='réparation'?[['dmg','Endommagé']]:[['dmg','Endommagé'],['maint','En entretien'],['dispo','Disponible en magasin']]},
+    {k:'qty',label:'Quantité',type:'number',min:1,step:1,required:true,full:true,value:1},
+    ...(tr?[{k:'art2',label:'Nouvel article obtenu',required:true,full:true,list:'plist',hint:'Par exemple des serviettes.'},{k:'qty2',label:'Quantité obtenue',type:'number',min:1,step:1,required:true,full:true,value:1}]:[]),
+    {k:'note',label:'Motif (obligatoire)',required:true,full:true,hint:'Le manager valide ou refuse. Rien ne change dans le stock avant sa validation.'}],
+   submit:'Envoyer au manager',onSubmit:v=>{
+    if(!can('transform')){toast('Droit insuffisant.',1);return false}
+    const p=findProd(v.art);if(!p){toast('Article introuvable : choisissez un nom du catalogue.',1);return false}
+    const q=Math.round(v.qty);if(!(q>0)){toast('Quantité invalide.',1);return false}
+    const have=srcHave(p,v.from);if(q>have){toast('Seulement '+have+' pièce(s) dans cet état.',1);return false}
+    let tail='';
+    if(tr){const p2=findProd(v.art2),q2=Math.round(v.qty2);
+      if(!p2){toast('Nouvel article introuvable.',1);return false}
+      if(p2.id===p.id){toast('Le nouvel article doit être différent.',1);return false}
+      if(!(q2>0)){toast('Quantité obtenue invalide.',1);return false}
+      tail=' en ['+p2.id+'] ×'+q2}
+    addMove(p.id,'État',0,'','Proposition '+kind+' ×'+q+' depuis '+v.from+tail+' — '+v.note);
+    save();render();toast('Proposition envoyée au manager pour validation.');
+   }});
+}
+function propExec(x){
+  const d=x.d,p=x.p;
+  const have=srcHave(p,d.from);if(d.q>have){toast('Plus assez de pièces dans cet état ('+have+').',1);return false}
+  if(d.kind==='réparation'){
+    p.dmg-=d.q;p.maint=(p.maint||0)+d.q;
+    addMove(p.id,'État',0,'','Réparation validée ×'+d.q+' : Endommagé → En entretien');return true}
+  if(d.from==='maint')p.maint-=d.q;if(d.from==='dmg')p.dmg-=d.q;
+  p.stock=Math.max(0,p.stock-d.q);
+  if(d.kind==='rebut'){addMove(p.id,'Rebut',-d.q,'',SRC_LABEL[d.from]+' → Mis au rebut (sort du parc) — '+d.note);return true}
+  const p2=prod(d.pid2);if(!p2){toast('Nouvel article introuvable.',1);return false}
+  addMove(p.id,'Rebut',-d.q,'',SRC_LABEL[d.from]+' → Transformé en '+p2.name+' (×'+d.q2+') — '+d.note);
+  p2.stock+=d.q2;addMove(p2.id,'Entrée',d.q2,'','Transformation : issu de '+p.name+' (×'+d.q+')');return true;
+}
+function propOk(id){
+  if(me().role!=='admin'){toast('Seul le manager valide.',1);return}
+  const x=pendingProps().find(y=>y.m.id===id);if(!x)return;
+  confirmDialog('Valider cette proposition ?',propText(x),'Valider et appliquer',()=>{
+    if(!propExec(x))return;
+    addMove(x.p.id,'État',0,'','Décision ['+id+'] validée');save();render();toast('Proposition validée et appliquée au stock.');
+  });
+}
+function propNo(id){
+  if(me().role!=='admin'){toast('Seul le manager décide.',1);return}
+  const x=pendingProps().find(y=>y.m.id===id);if(!x)return;
+  formModal({title:'Refuser la proposition',narrow:true,fields:[{k:'r',label:'Raison (facultatif)',full:true,hint:propText(x)}],submit:'Refuser',onSubmit:v=>{
+    addMove(x.p.id,'État',0,'','Décision ['+id+'] refusée'+(v.r?' — '+v.r:''));save();render();toast('Proposition refusée. Aucun changement de stock.');}});
+}
+
+/* ============ entretien du linge : lavage, repassage, rangement ============ */
+const CARE_STEPS=['Lavage','Repassage','Rangement'];
+const isCare=m=>m.type==='État'&&/^Linge : /.test(m.note||'');
+function parseCare(m){const x=/^Linge : (Lavage|Repassage|Rangement) ×(\d+) par (.+?)(?: — ([\s\S]*))?$/.exec(m.note||'');return x?{step:x[1],q:+x[2],who:x[3],note:x[4]||''}:null}
+function vCare(){
+  const list=S.moves.filter(isCare).map(m=>({m,p:prod(m.pid),c:parseCare(m)})).filter(x=>x.p&&x.c).sort((a,b)=>(b.m.at||b.m.date).localeCompare(a.m.at||a.m.date));
+  const today=list.filter(x=>x.m.date===TODAY);
+  const cnt=s=>today.filter(x=>x.c.step===s).reduce((a,x)=>a+x.c.q,0);
+  const flt=ui.careWho||'',whos=[...new Set(list.map(x=>x.c.who))].sort();
+  const shown=list.filter(x=>!flt||x.c.who===flt).slice(0,150);
+  return `<div class="bar-row"><span class="grow"></span><button class="btn primary" data-act="newCare">${ic('plus',16)} Enregistrer une étape</button></div>
+  <div class="kpis">${CARE_STEPS.map(s=>`<div class="kpi"><span>${s} aujourd’hui</span><b>${cnt(s)}</b><small>pièces</small></div>`).join('')}</div>
+  <section class="panel" style="padding:6px 8px"><div class="panel-h"><h3>Journal d’entretien</h3>${whos.length?`<select data-in="care" aria-label="Filtrer par personne"><option value="">Toutes les personnes</option>${whos.map(w=>`<option ${w===flt?'selected':''}>${esc(w)}</option>`).join('')}</select>`:''}</div><div class="scroll">${shown.length?`<table><thead><tr><th>Date et heure</th><th>Article</th><th>Étape</th><th class="num">Quantité</th><th>Réalisé par</th><th>Remarque</th></tr></thead><tbody>${shown.map(x=>`<tr><td>${fdt(x.m.at||x.m.date)}</td><td><b>${esc(x.p.name)}</b><span class="sub">${esc(x.p.ref)}</span></td><td><span class="badge b-info">${x.c.step}</span></td><td class="num">${x.c.q}</td><td>${esc(x.c.who)}</td><td>${esc(x.c.note||'—')}</td></tr>`).join('')}</tbody></table>`:empty('Aucune étape enregistrée','Enregistrez chaque lavage, repassage ou rangement avec le nom de la personne.')}</div></section>
+  <p class="hint">Pour suivre une pièce à la fois, saisissez la quantité 1. Cette étape ne modifie pas le stock : elle garde la trace de qui a fait quoi.</p>`;
+}
+function careForm(){
+  if(!(['admin','stock','maint'].includes(me().role))){toast('Droit insuffisant.',1);return}
+  formModal({title:'Enregistrer une étape d’entretien',narrow:true,fields:[
+    {k:'art',label:'Article (nappe, serviette…)',required:true,full:true,list:'plist'},
+    {k:'step',label:'Étape',type:'select',full:true,options:CARE_STEPS.map(s=>[s,s])},
+    {k:'qty',label:'Quantité',type:'number',min:1,step:1,required:true,full:true,value:1},
+    {k:'who',label:'Réalisé par',required:true,full:true,value:me().name,list:'stfList',hint:'Choisissez une personne de l’équipe ou saisissez un nom.'},
+    {k:'note',label:'Remarque (facultatif)',full:true}],
+   submit:'Enregistrer',onSubmit:v=>{
+    const p=findProd(v.art);if(!p){toast('Article introuvable : choisissez un nom du catalogue.',1);return false}
+    const q=Math.round(v.qty);if(!(q>0)){toast('Quantité invalide.',1);return false}
+    addMove(p.id,'État',0,'','Linge : '+v.step+' ×'+q+' par '+v.who+(v.note?' — '+v.note:''));
+    save();render();toast(v.step+' enregistré.');
+   }});
+  const dl=document.createElement('datalist');dl.id='stfList';dl.innerHTML=S.staff.filter(s=>s.active).map(s=>`<option value="${esc(s.name)}">`).join('');$('#modal-root').appendChild(dl);
+}
+
+/* ============ facture signée rattachée à la commande ============ */
+const SIGN_MODES=[['Showroom : signature à la main','Showroom : signature à la main'],['À distance : signature électronique','À distance : signature électronique'],['À distance : devis signé renvoyé par le client','À distance : devis signé renvoyé par le client']];
+function signBox(r){
+  if(!r.signedOn)return can('sign')?`<div class="hint" style="margin-top:12px">Facture non signée.</div>`:'';
+  return `<div class="kv" style="margin-top:14px"><div><span>Facture signée</span><b>${fd(r.signedOn,1)}</b><span>${esc(r.signedMode||'')}${r.signedBy?' · par '+esc(r.signedBy):''}</span></div>${r.signedFile?`<div><span>Document signé</span><b><button class="btn sm" data-act="signView" data-id="${r.id}">Voir le document</button></b></div>`:''}</div>`;
+}
+function signForm(id){
+  const r=byId(id);if(!r)return;if(!can('sign')){toast('Droit insuffisant.',1);return}
+  const cl=client(r.clientId)||{};
+  openModal('Facture signée : '+r.no,`<form id="sform" class="form" novalidate>
+   <div class="field full"><label for="sg_mode">Mode de signature</label><select id="sg_mode" name="mode">${SIGN_MODES.map(([v,l])=>`<option ${v===r.signedMode?'selected':''}>${esc(l)}</option>`).join('')}</select></div>
+   <div class="field"><label for="sg_on">Date de signature</label><input id="sg_on" name="on" type="date" value="${r.signedOn||TODAY}" required></div>
+   <div class="field"><label for="sg_by">Signé par</label><input id="sg_by" name="by" value="${esc(r.signedBy||cl.name||'')}" required></div>
+   <div class="field full"><label for="sg_file">Document signé (photo ou PDF, facultatif)</label><input id="sg_file" name="file" type="file" accept="image/*,application/pdf"><div class="hint">« Lu et approuvé », signature du client sur la facture et sur les conditions de location.${r.signedFile?' Un document est déjà enregistré : en choisir un autre le remplace.':''}</div></div>
+   <div class="modal-foot"><button type="button" class="btn ghost" data-act="closeModal">Annuler</button><button class="btn primary" type="submit">Enregistrer</button></div></form>`,{narrow:true});
+  $('#sform').addEventListener('submit',async e=>{
+    e.preventDefault();const f=e.target,on=f.on.value,by=f.by.value.trim();
+    if(!on||!by){toast('Complétez la date et le nom.',1);return}
+    const file=f.file.files[0];
+    if(file&&file.size>8*1024*1024){toast('Fichier trop volumineux (8 Mo maximum).',1);return}
+    let path=r.signedFile||'';
+    if(file){
+      if(typeof sb!=='undefined'&&sb&&sb.storage){
+        const ext=(file.name.split('.').pop()||'bin').replace(/[^a-z0-9]/gi,'').toLowerCase().slice(0,5)||'bin';
+        const np=r.id+'/'+Date.now()+'.'+ext;
+        const up=await sb.storage.from('signed').upload(np,file,{contentType:file.type||'application/octet-stream'});
+        if(up.error){toast('Le document n’a pas pu être envoyé : '+up.error.message,1);return}
+        path=np;
+      }else{path='demo:'+file.name}
+    }
+    r.signedOn=on;r.signedBy=by;r.signedMode=f.mode.value;r.signedFile=path;
+    save();closeModal();render();toast('Facture signée enregistrée.');showRental(id);
+  });
+}
+async function signView(id){
+  const r=byId(id);if(!r||!r.signedFile)return;
+  if(r.signedFile.startsWith('demo:')){toast('Version de démonstration : fichier « '+r.signedFile.slice(5)+' » non conservé.');return}
+  if(typeof sb==='undefined'||!sb||!sb.storage)return;
+  const u=await sb.storage.from('signed').createSignedUrl(r.signedFile,120);
+  if(u.error||!u.data){toast('Document introuvable.',1);return}
+  window.open(u.data.signedUrl,'_blank','noopener');
+}
+
 /* ============ clients ============ */
 function clientStats(c){const rs=S.rentals.filter(r=>r.clientId===c.id);const lv=rs.filter(live);return{n:lv.length,ca:lv.reduce((a,r)=>a+total(r),0),due:lv.reduce((a,r)=>a+Math.max(0,balance(r)),0),rs}}
 function vClients(){
@@ -2156,11 +2309,12 @@ const ACT={
   period:el=>{ui.period=el.dataset.v;ui.rmonth=null;render()},rmonth:el=>{ui.rmonth=ui.rmonth===el.dataset.v?null:el.dataset.v;render()},famDetail:el=>famDetail(el.dataset.id),dormDetail:()=>{ui.dwin=90;ui.dcat='Tous';dormantDetail()},dormWin:el=>{ui.dwin=+el.dataset.v;dormantDetail()},dormCsv:()=>csvModal('Articles dormants',dormantRows()),
   supSend:()=>supSend(),supCopy:()=>supCopy(),supReset:()=>supReset(),supSave:el=>supSave(el),supType:el=>{ui.sup.type=el.dataset.v;ui.sup.kind='';ui.sup.urg='';supRefresh(true)},
   newStaff:()=>openModal('Ajouter un collaborateur',`<p>Les comptes sont créés dans Supabase pour des raisons de sécurité :</p><ol><li>Ouvrez <b>Supabase → Authentication → Users → Add user</b> et saisissez l’e-mail et un mot de passe.</li><li>Le collaborateur apparaît ici avec le rôle <b>Livreur</b> (aucun accès aux montants).</li><li>Cliquez sur <b>Actualiser les données</b>, puis <b>Modifier</b> pour lui donner le bon rôle.</li></ol><div class="modal-foot" style="display:flex;justify-content:flex-end"><button class="btn primary" data-act="closeModal">Compris</button></div>`,{narrow:true,focus:false}),editStaff:el=>staffForm(el.dataset.id),
-  newRebut:()=>rebutForm(),newAdvice:()=>adviceForm(),answerAdvice:el=>answerAdvice(el.dataset.id),newTransform:()=>transformForm(),newSignal:()=>signalForm(),signalForm:el=>signalForm(el.dataset.id),treatSignal:el=>el.dataset.v==='rebut'?rebutForm(el.dataset.id):stateForm(el.dataset.id),theme:()=>toggleTheme(),
+  newRebut:()=>rebutForm(),newRepair:()=>proposeForm('réparation'),propOk:el=>propOk(el.dataset.id),propNo:el=>propNo(el.dataset.id),newCare:()=>careForm(),signForm:el=>signForm(el.dataset.id),signView:el=>signView(el.dataset.id),newAdvice:()=>adviceForm(),answerAdvice:el=>answerAdvice(el.dataset.id),newTransform:()=>transformForm(),newSignal:()=>signalForm(),signalForm:el=>signalForm(el.dataset.id),treatSignal:el=>el.dataset.v==='rebut'?rebutForm(el.dataset.id):stateForm(el.dataset.id),theme:()=>toggleTheme(),
   logout:()=>signOutUI(''),
   refresh:()=>{if(syncing||dirty){toast('Enregistrement en cours, réessayez dans un instant.',1);return}reloadAll().then(()=>toast('Données actualisées.'))},
 };
 const INP={
+  care:(el,ev)=>{if(ev.type!=='change')return;ui.careWho=el.value;render()},
   rq:el=>{ui.rq=el.value;$('#rtable').innerHTML=rentalsTable(rentalRows())},
   sq:el=>{ui.sq=el.value;ui.slimit=60;$('#stable').innerHTML=stockTable(filterProducts())},
   dcat:el=>{ui.dcat=el.value;dormantDetail()},
