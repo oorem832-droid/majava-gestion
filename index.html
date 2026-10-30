@@ -837,11 +837,11 @@ function setTransport(d){
 }
 function setDiscount(d){
   const T=termsOf(d.clientId);
-  if(T&&T.discount&&!d.termsOff){const nd=Math.max(1,diff(d.start,d.end)+1),sub=d.lines.reduce((a,l)=>a+l.qty*lp(l),0)*nd;d.discount=Math.round(sub*termsPct(T,sub)/100);d.autoDisc=true}
+  if(T&&T.discount&&!d.termsOff){const nd=Math.max(1,diff(d.start,d.end)+1),sub=d.lines.reduce((a,l)=>a+l.qty*lp(l),0)*nd;d.discPct=termsPct(T,sub);d.discount=Math.round(sub*d.discPct/100);d.autoDisc=true}
 }
 function onClientPick(d){
   const T=termsOf(d.clientId);
-  if(d.autoDisc&&!T){d.discount=0;d.autoDisc=false;d.termsOff=false}
+  if(d.autoDisc&&!T){d.discount=0;d.discPct=0;d.autoDisc=false;d.termsOff=false}
   if(d.communeAuto&&!T){d.commune='';d.zone='';d.delivery=0;d.communeAuto=false}
   if(T){d.termsOff=false;if(T.commune){d.commune=T.commune;d.zone='';d.communeAuto=true}}
   if(d.commune)setTransport(d);
@@ -1393,7 +1393,7 @@ function printDoc(id,kind){
 }
 
 /* ============ nouvelle commande ============ */
-function newDraft(){return{editId:null,clientId:'',eventName:'',eventType:'Mariage',source:'Téléphone',start:addD(TODAY,7),end:addD(TODAY,7),lines:[],commune:'',zone:'',addr:'',delivery:0,discount:0,payAmount:0,cautionPay:0,delivSlot:'',pickSlot:'',payMethod:'Orange Money',holdH:'1',notes:'',q:'',cat:'Tous'}}
+function newDraft(){return{editId:null,clientId:'',eventName:'',eventType:'Mariage',source:'Téléphone',start:addD(TODAY,7),end:addD(TODAY,7),lines:[],commune:'',zone:'',addr:'',delivery:0,discount:0,discPct:0,payAmount:0,cautionPay:0,delivSlot:'',pickSlot:'',payMethod:'Orange Money',holdH:'1',notes:'',q:'',cat:'Tous'}}
 function vPos(){
   if(!ui.draft)ui.draft=newDraft();
   const d=ui.draft;
@@ -1433,10 +1433,13 @@ function refreshTile(pid){const p=prod(pid),el=$('#t-'+pid);if(el&&p&&!shown(p))
 function draftCalc(){
   const d=ui.draft,nd=Math.max(1,diff(d.start,d.end)+1);
   const sub=d.lines.reduce((a,l)=>a+l.qty*lp(l),0)*nd;
+  d.discount=discAmt(d,sub);
   const t=sub+num(d.delivery)-num(d.discount);
   const caution=depFromBase(sub);
   return{nd,sub,t,caution,due:t+caution,reste:Math.max(0,t-num(d.payAmount))+Math.max(0,caution-num(d.cautionPay))};
 }
+/* remise saisie en % et calculée systématiquement sur le prix des articles (sans transport ni caution) */
+const discAmt=(d,sub)=>{const p=Math.min(100,Math.max(0,+d.discPct||0));return Math.round((sub==null?d.lines.reduce((a,l)=>a+l.qty*lp(l),0)*Math.max(1,diff(d.start,d.end)+1):sub)*p/100)};
 function totalsHtml(){
   const d=ui.draft,c=draftCalc();
   return `<div><span>Articles (${c.nd} jour${c.nd>1?'s':''})</span><span>${F(c.sub)}</span></div><div><span>Transport (livraison & récupération)</span><span>${F(num(d.delivery))}</span></div>${num(d.discount)?`<div><span>Remise</span><span>− ${F(num(d.discount))}</span></div>`:''}<div><span>Total facture</span><span>${F(c.t)}</span></div><div><span>Caution (${S.settings.depositRate} % du prix des articles, remboursable)</span><span>${F(c.caution)}</span></div><div class="big"><span>Total à payer</span><span>${F(c.due)}</span></div>${num(d.payAmount)||num(d.cautionPay)?`<div><span>Déjà reçu</span><span class="pos">${F(num(d.payAmount)+num(d.cautionPay))}</span></div><div><b>Reste à payer</b><b>${F(c.reste)}</b></div>`:''}`;
@@ -1462,7 +1465,7 @@ function drawCart(){
    <div class="field"><label for="d_zone">Zone / quartier</label><select id="d_zone" data-in="d" data-k="zone" ${d.commune?'':'disabled'}><option value="">— Choisir —</option>${((tpCommune(d.commune)||[0,0,[]])[2]).map(z=>`<option ${z===d.zone?'selected':''}>${esc(z)}</option>`).join('')}${d.commune?`<option value="Autre" ${d.zone==='Autre'?'selected':''}>Autre (à préciser ci-dessous)</option>`:''}</select></div>
    <div class="field full"><label for="d_addr">Précisions sur l’adresse</label><input id="d_addr" data-in="d" data-k="addr" value="${esc(d.addr||'')}" placeholder="ex. Angré 7e tranche, villa n° 10 · à côté de la Puissance 6"><div class="hint">Indiquez aussi l’étage de livraison (RDC, 1er, 2e…).</div></div>
    ${(()=>{const T=termsOf(d.clientId),lock=T&&!can('team')&&!d.termsOff;return `<div class="field"><label for="d_liv">Livraison & récupération (F)</label><input id="d_liv" type="number" min="0" value="${d.delivery||''}" data-in="d" data-k="delivery" placeholder="0" ${lock?'readonly':''}><div class="hint">${d.commune?'Tarif '+esc(d.commune)+' : '+F(tpPrice(d.commune,d.zone==='Autre'?'':d.zone)):'Choisissez la commune : le tarif s’applique automatiquement.'}${T&&T.transport&&T.transport[d.commune]!=null?' · tarif client : '+F(T.transport[d.commune]):''}</div></div>
-   <div class="field"><label for="d_rem">Remise (F)</label><input id="d_rem" type="number" min="0" value="${d.discount||''}" data-in="d" data-k="discount" placeholder="0" ${lock?'readonly':''}>${T&&T.discount?`<div class="hint">Conditions ${esc(T.label||'client')} : ${T.discount.map(t=>t.pct+' % '+(t.from?'dès '+F(t.from):'sous '+F(T.discount.filter(x=>x.from>0)[0]?T.discount.filter(x=>x.from>0)[0].from:0))+' d’articles').join(' · ')} (calculé sur les articles uniquement, sans transport ni caution).${lock?' Non modifiable.':''}</div>`:''}</div>`})()}
+   <div class="field"><label for="d_rem">Remise (%)</label><input id="d_rem" type="number" min="0" max="100" step="any" value="${d.discPct||''}" data-in="d" data-k="discPct" placeholder="0" ${lock?'readonly':''}><div class="hint" id="d_remamt">${d.discPct?'Remise calculée : − '+F(discAmt(d)):'Saisissez un pourcentage : le montant est calculé automatiquement.'}</div>${T&&T.discount?`<div class="hint">Conditions ${esc(T.label||'client')} : ${T.discount.map(t=>t.pct+' % '+(t.from?'dès '+F(t.from):'sous '+F(T.discount.filter(x=>x.from>0)[0]?T.discount.filter(x=>x.from>0)[0].from:0))+' d’articles').join(' · ')} (calculé sur les articles uniquement, sans transport ni caution).${lock?' Non modifiable.':''}</div>`:''}</div>`})()}
    <div class="field full"><label for="d_ds">Créneau de livraison (le ${fd(d.start,1)})</label><select id="d_ds" data-in="d" data-k="delivSlot"><option value="">— À choisir —</option>${SLOTS.map(x=>`<option ${x===d.delivSlot?'selected':''}>${x}</option>`).join('')}</select></div>
    <div class="field full"><label for="d_ps">Créneau de récupération (le ${fd(d.end,1)})</label><select id="d_ps" data-in="d" data-k="pickSlot"><option value="">— À choisir —</option>${SLOTS.map(x=>`<option ${x===d.pickSlot?'selected':''}>${x}</option>`).join('')}</select><div class="hint">Les créneaux sont réservés avec le matériel dès que la commande est payée en totalité.</div></div>
    <div class="field"><label for="d_pay">Paiement reçu : articles + transport (F)</label><input id="d_pay" type="number" min="0" value="${d.payAmount||''}" data-in="d" data-k="payAmount" placeholder="0"><div class="hint">Montant exact à payer : <span id="h_pay">${F(draftCalc().t)}</span>.</div></div>
@@ -1525,7 +1528,7 @@ function commitDraft(status){
   let r=d.editId?S.rentals.find(x=>x.id===d.editId):null;
   const lines=d.lines.map(l=>{const f=l.pr!=null&&l.pk===l.qty;return f?{pid:l.pid,qty:l.qty,price:l.pr,pack:true}:{pid:l.pid,qty:l.qty,price:prod(l.pid).price}});
   if(!r){S.seq.rental++;r={id:uid('r'),no:nextQuoteNo(),payments:[],fees:0,lost:{},created:nowLocal(),by:S.me,deposit:0,depositState:null,depositRetained:0,depositClosedOn:null,depositBack:0,holdUntil:null,prepared:false,incidents:[],regul:false};S.rentals.push(r)}
-  Object.assign(r,{delivCommune:d.commune||'',delivZone:d.zone||'',delivAddr:d.addr||'',delivSlot:d.delivSlot||'',pickSlot:d.pickSlot||'',clientId:d.clientId,eventName:d.eventName.trim(),eventType:d.eventType,source:d.source,start:d.start,end:d.end,lines,delivery:num(d.delivery),discount:num(d.discount),notes:d.notes,status});
+  Object.assign(r,{delivCommune:d.commune||'',delivZone:d.zone||'',delivAddr:d.addr||'',delivSlot:d.delivSlot||'',pickSlot:d.pickSlot||'',clientId:d.clientId,eventName:d.eventName.trim(),eventType:d.eventType,source:d.source,start:d.start,end:d.end,lines,delivery:num(d.delivery),discount:discAmt(d),notes:d.notes,status});
   if(status==='Pré-réservation'){r.holdUntil=new Date(Date.now()+Math.min(S.settings.holdMaxHours,num(d.holdH)||1)*36e5).toISOString();r.holdBy=S.me}
   if(status==='Confirmée'){
     giveInvoice(r);
@@ -2060,7 +2063,7 @@ const ACT={
   regul:el=>regul(el.dataset.id),cancelRental:el=>cancelRental(el.dataset.id),
   addItems:el=>addItemsForm(el.dataset.id),
   printDoc:el=>printDoc(el.dataset.id,el.dataset.kind),printPage:()=>{try{window.print()}catch(e){toast('L’impression n’est pas disponible dans cet aperçu.',1)}},
-  editDraft:el=>{const r=byId(el.dataset.id);ui.draft=Object.assign(newDraft(),{editId:r.id,clientId:r.clientId,eventName:r.eventName,eventType:r.eventType,source:r.source||'Téléphone',start:r.start<TODAY?TODAY:r.start,end:r.end<TODAY?TODAY:r.end,lines:r.lines.map(l=>({pid:l.pid,qty:l.qty,pr:l.price!==prod(l.pid).price?l.price:null,pk:l.price!==prod(l.pid).price?l.qty:null})),delivery:r.delivery,discount:r.discount,notes:r.notes,delivSlot:r.delivSlot||'',pickSlot:r.pickSlot||'',commune:r.delivCommune||'',zone:r.delivZone||'',addr:r.delivAddr||''});(()=>{const d=ui.draft;d.lines.forEach(t=>{const pk=PACK[prod(t.pid).name];if(!pk)return;const nl=d.lines.find(n=>n.pk!=null&&n.pk===t.qty&&pk.nappes.includes(prod(n.pid).name));if(nl)t.pack=nl.pid})})();closeModal();go('pos')},
+  editDraft:el=>{const r=byId(el.dataset.id);ui.draft=Object.assign(newDraft(),{editId:r.id,clientId:r.clientId,eventName:r.eventName,eventType:r.eventType,source:r.source||'Téléphone',start:r.start<TODAY?TODAY:r.start,end:r.end<TODAY?TODAY:r.end,lines:r.lines.map(l=>({pid:l.pid,qty:l.qty,pr:l.price!==prod(l.pid).price?l.price:null,pk:l.price!==prod(l.pid).price?l.qty:null})),delivery:r.delivery,discount:r.discount,discPct:(subtotal(r)>0?Math.round(r.discount/subtotal(r)*1e6)/1e4:0),notes:r.notes,delivSlot:r.delivSlot||'',pickSlot:r.pickSlot||'',commune:r.delivCommune||'',zone:r.delivZone||'',addr:r.delivAddr||''});(()=>{const d=ui.draft;d.lines.forEach(t=>{const pk=PACK[prod(t.pid).name];if(!pk)return;const nl=d.lines.find(n=>n.pk!=null&&n.pk===t.qty&&pk.nappes.includes(prod(n.pid).name));if(nl)t.pack=nl.pid})})();closeModal();go('pos')},
   rentTo:el=>{ui.draft=Object.assign(newDraft(),{clientId:el.dataset.id});closeModal();go('pos')},
   pcat:el=>{ui.draft.cat=el.dataset.v;drawCats();drawTiles()},
   addLot:el=>{const d=ui.draft,l=LOTS[+el.dataset.lot];if(!l)return;if(lotAvail(l)<=0){toast('Ce lot n’est plus disponible en entier pour ces dates : ajoutez les pièces une à une.',1);return}lotProds(l).forEach(p=>{const cur=(d.lines.find(x=>x.pid===p.id)||{}).qty||0;setQty(p.id,cur+1,true)});drawCart()},
@@ -2108,11 +2111,12 @@ const INP={
       d.lines.forEach(l=>{const a=avail(prod(l.pid),d.start,d.end,d.editId);if(l.qty>a){toast(`« ${prod(l.pid).name} » : quantité réduite à ${Math.max(0,a)} pour ces dates.`,1);l.qty=Math.max(0,a)}});
       d.lines=d.lines.filter(l=>l.qty>0);drawTiles();drawCart();return}
     d[k]=el.type==='number'?num(el.value):el.value;
-    if(['delivery','discount'].includes(k)&&termsOf(d.clientId))d.termsOff=true;
+    if(k==='discPct'){d.discPct=Math.min(100,Math.max(0,num(el.value)));if(num(el.value)>100)el.value=100}
+    if(['delivery','discPct'].includes(k)&&termsOf(d.clientId))d.termsOff=true;
     if(k==='clientId'){onClientPick(d);drawCart();return}
     if(k==='commune'){d.zone='';setTransport(d);drawCart();return}
     if(k==='zone'){setTransport(d);drawCart();return}
-    if(['delivery','discount','payAmount','cautionPay'].includes(k)){$('#ctot').innerHTML=totalsHtml();const c=draftCalc();if($('#h_pay'))$('#h_pay').textContent=F(c.t);if($('#h_cau'))$('#h_cau').textContent=F(c.caution)}
+    if(['delivery','discPct','payAmount','cautionPay'].includes(k)){$('#ctot').innerHTML=totalsHtml();if(k==='discPct'&&$('#d_remamt'))$('#d_remamt').textContent=d.discPct?'Remise calculée : − '+F(discAmt(d)):'Saisissez un pourcentage : le montant est calculé automatiquement.';const c=draftCalc();if($('#h_pay'))$('#h_pay').textContent=F(c.t);if($('#h_cau'))$('#h_cau').textContent=F(c.caution)}
   }
 };
 document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el)return;const f=ACT[el.dataset.act];if(f)f(el,e)});
